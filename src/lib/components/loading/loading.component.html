@@ -1,0 +1,36 @@
+@if (image(); as source) {
+	<img class="hub-loading__image" [class]="_imageClasses()" [src]="source" alt="" aria-hidden="true" />
+} @else {
+	@switch (variant()) {
+		@case ('dots') {
+			<span class="hub-loading__indicator hub-loading__indicator--dots" aria-hidden="true">
+				<span class="hub-loading__dot"></span>
+				<span class="hub-loading__dot"></span>
+				<span class="hub-loading__dot"></span>
+			</span>
+		}
+		@case ('bars') {
+			<span class="hub-loading__indicator hub-loading__indicator--bars" aria-hidden="true">
+				<span class="hub-loading__bar"></span>
+				<span class="hub-loading__bar"></span>
+				<span class="hub-loading__bar"></span>
+				<span class="hub-loading__bar"></span>
+			</span>
+		}
+		@case ('pulse') {
+			<span class="hub-loading__indicator hub-loading__indicator--pulse" aria-hidden="true"></span>
+		}
+		@case ('ring') {
+			<span class="hub-loading__indicator hub-loading__indicator--ring" aria-hidden="true"></span>
+		}
+		@default {
+			<span class="hub-loading__indicator hub-loading__indicator--spinner" aria-hidden="true"></span>
+		}
+	}
+}
+
+@if (message()) {
+	<p class="hub-loading__message">{{ message() }}</p>
+}
+
+<ng-content />

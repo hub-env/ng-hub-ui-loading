@@ -1,0 +1,560 @@
+# ng-hub-ui-loading
+
+**Español** | [English](./README.md)
+
+[![NPM Version](https://img.shields.io/npm/v/ng-hub-ui-loading.svg)](https://www.npmjs.com/package/ng-hub-ui-loading)
+[![Angular](https://img.shields.io/badge/Angular-22%2B-red.svg)](https://angular.dev)
+[![License](https://img.shields.io/npm/l/ng-hub-ui-loading.svg)](LICENSE)
+
+Bloque de carga standalone para Angular 22+ — un indicador en línea, una capa superpuesta sobre el contenedor que está ocupado, o una cortina a pantalla completa, todo desde un único elemento `<hub-loading>`. Cinco indicadores puramente CSS, la opción de sustituirlos por un logo o una imagen, un mensaje opcional y un `HubLoadingService` con contador de referencias para el caso global. Sin dependencias externas; cada color y cada dimensión es una propiedad CSS `--hub-loading-*`.
+
+## Documentación y ejemplos en vivo
+
+Este paquete es parte de [Hub UI](https://hubui.dev/en/), una colección de bibliotecas de componentes Angular para apps standalone.
+
+- Docs: https://hubui.dev/en/loading/overview/
+- Ejemplos en vivo: https://hubui.dev/en/loading/examples/
+- Hub UI: https://hubui.dev/en/
+
+## 🧩 Familia de bibliotecas `ng-hub-ui`
+
+Esta biblioteca forma parte del ecosistema **ng-hub-ui**:
+
+- [**ng-hub-ui-action-sheet**](https://www.npmjs.com/package/ng-hub-ui-action-sheet)
+- [**ng-hub-ui-avatar**](https://www.npmjs.com/package/ng-hub-ui-avatar)
+- [**ng-hub-ui-badges**](https://www.npmjs.com/package/ng-hub-ui-badges)
+- [**ng-hub-ui-board**](https://www.npmjs.com/package/ng-hub-ui-board)
+- [**ng-hub-ui-breadcrumbs**](https://www.npmjs.com/package/ng-hub-ui-breadcrumbs)
+- [**ng-hub-ui-buttons**](https://www.npmjs.com/package/ng-hub-ui-buttons)
+- [**ng-hub-ui-calendar**](https://www.npmjs.com/package/ng-hub-ui-calendar)
+- [**ng-hub-ui-ds**](https://www.npmjs.com/package/ng-hub-ui-ds)
+- [**ng-hub-ui-forms**](https://www.npmjs.com/package/ng-hub-ui-forms)
+- [**ng-hub-ui-history**](https://www.npmjs.com/package/ng-hub-ui-history)
+- [**ng-hub-ui-icons**](https://www.npmjs.com/package/ng-hub-ui-icons)
+- [**ng-hub-ui-loading**](https://www.npmjs.com/package/ng-hub-ui-loading) ← Estás aquí
+- [**ng-hub-ui-metrics**](https://www.npmjs.com/package/ng-hub-ui-metrics)
+- [**ng-hub-ui-milestones**](https://www.npmjs.com/package/ng-hub-ui-milestones)
+- [**ng-hub-ui-modal**](https://www.npmjs.com/package/ng-hub-ui-modal)
+- [**ng-hub-ui-nav**](https://www.npmjs.com/package/ng-hub-ui-nav)
+- [**ng-hub-ui-paginable**](https://www.npmjs.com/package/ng-hub-ui-paginable)
+- [**ng-hub-ui-panels**](https://www.npmjs.com/package/ng-hub-ui-panels)
+- [**ng-hub-ui-portal**](https://www.npmjs.com/package/ng-hub-ui-portal)
+- [**ng-hub-ui-signature**](https://www.npmjs.com/package/ng-hub-ui-signature)
+- [**ng-hub-ui-skeleton**](https://www.npmjs.com/package/ng-hub-ui-skeleton)
+- [**ng-hub-ui-sortable**](https://www.npmjs.com/package/ng-hub-ui-sortable)
+- [**ng-hub-ui-stepper**](https://www.npmjs.com/package/ng-hub-ui-stepper)
+- [**ng-hub-ui-toast**](https://www.npmjs.com/package/ng-hub-ui-toast)
+- [**ng-hub-ui-utils**](https://www.npmjs.com/package/ng-hub-ui-utils)
+
+## 📑 Índice
+
+- [📦 Descripción](#-descripción)
+- [✨ Características](#-características)
+- [🚀 Inicio rápido](#-inicio-rápido)
+- [🎯 Modos](#-modos)
+- [🎛️ Variantes](#️-variantes)
+- [🖼️ Imagen y marca](#️-imagen-y-marca)
+- [🧰 API programática](#-api-programática)
+- [📖 Referencia de la API](#-referencia-de-la-api)
+- [🎨 Estilos / Variables CSS](#-estilos--variables-css)
+- [♿ Accesibilidad](#-accesibilidad)
+- [🖥️ Renderizado en servidor](#️-renderizado-en-servidor)
+- [📦 Dependencias entre pares](#-dependencias-entre-pares)
+- [📊 Changelog](#-changelog)
+- [🤝 Contribución](#-contribución)
+- [☕ Soporte](#-soporte)
+- [📄 Licencia](#-licencia)
+
+## 📦 Descripción
+
+`ng-hub-ui-loading` cubre el hueco entre las demás primitivas de «algo está pasando» de la
+familia y el spinner que vivía atrapado dentro de un botón: un bloque standalone que muestra
+un indicador de actividad, una imagen o un logo opcionales y un mensaje opcional, y que puede
+renderizarse en el flujo, sobre su propio contenedor o sobre todo el viewport.
+
+### Cuándo usar cada biblioteca
+
+| Paquete | Úsalo cuando |
+| --- | --- |
+| **`ng-hub-ui-loading`** | No puedes decir cuánto falta y la forma del resultado todavía no importa. Un indicador de actividad — en su sitio, sobre el contenedor ocupado o sobre toda la aplicación. |
+| [`ng-hub-ui-skeleton`](https://www.npmjs.com/package/ng-hub-ui-skeleton) | Ya conoces la forma de lo que va a llegar y quieres que el layout reserve su sitio — placeholders estructurales con shimmer en lugar de un spinner. |
+| [`ng-hub-ui-metrics`](https://www.npmjs.com/package/ng-hub-ui-metrics) | Conoces la cifra de progreso — una barra, un medidor o un anillo determinados que informan de un valor. |
+
+Las tres se combinan: un skeleton para la lista que está llegando, un `<hub-loading mode="overlay">`
+sobre el panel que se refresca y un `<hub-progress>` para la subida que informa de bytes.
+
+## ✨ Características
+
+- **Tres modos en un solo componente** — `inline`, superposición sobre el contenedor (`overlay`) y `fullscreen` sobre el viewport.
+- **Cinco indicadores puramente CSS** — `spinner`, `dots`, `bars`, `pulse` y `ring`; sin bucle de animación en JavaScript, sin sprite SVG y sin fuente de iconos.
+- **Soporte de imagen / logo** — sustituye el indicador por tu propio recurso de marca y anímalo con `spin` o `pulse`.
+- **Mensaje y contenido proyectado opcionales** — un texto bajo el indicador más un slot `<ng-content>` para lo que haga falta.
+- **Superposiciones programáticas** — `HubLoadingService` monta un `<hub-loading>` a pantalla completa bajo demanda, con `show()` / `hide()` contados por referencia para que dos tareas concurrentes no se desmonten la superposición mutuamente.
+- **Valores por defecto para toda la aplicación** — `provideHubLoading()` redefine el valor por defecto de cada input, para el servicio *y* para cada `<hub-loading>` escrito en una plantilla, sin tocar un solo archivo de marcado.
+- **Cualquier color de acento** — `color` acepta un nombre semántico del design system, un valor hex, `oklch()` o una referencia `var(...)`, resuelto con `resolveHubAccent()` de `ng-hub-ui-utils`.
+- **Tematización por variables CSS** — cada color, dimensión y velocidad es una propiedad `--hub-loading-*`, con un mixin Sass `hub-loading-theme()` para re-vestir el bloque en una sola llamada.
+- **Accesible por defecto** — `role="status"`, `aria-live="polite"` y `aria-busy="true"`, con un `ariaLabel` configurable y un tratamiento de `prefers-reduced-motion` que calma el movimiento en lugar de congelarlo.
+- **Standalone, `OnPush`, inputs signal** — y compatible con SSR: en el servidor el contador sigue funcionando, solo se omite el montaje en el DOM.
+
+## 🚀 Inicio rápido
+
+### 1. Instalar
+
+```bash
+npm install ng-hub-ui-loading ng-hub-ui-utils
+```
+
+> **Tematización (recomendado):** instala los tokens de diseño compartidos para que el bloque
+> de carga — y todas las demás bibliotecas ng-hub-ui — usen la misma paleta y el mismo modo oscuro:
+>
+> ```bash
+> npm install ng-hub-ui-ds
+> ```
+>
+> ```css
+> @import 'ng-hub-ui-ds/styles/tokens/hub-tokens.css';
+> ```
+>
+> Es una peer dependency **opcional**: el componente incluye fallbacks CSS razonables
+> y funciona sin ella.
+
+### 2. Importar el componente standalone
+
+```typescript
+import { HubLoadingComponent } from 'ng-hub-ui-loading';
+
+@Component({
+	standalone: true,
+	imports: [HubLoadingComponent],
+	template: `
+		@if (isLoading()) {
+			<hub-loading message="Cargando resultados…" />
+		}
+	`
+})
+export class ResultsComponent {
+	readonly isLoading = signal(true);
+}
+```
+
+## 🎯 Modos
+
+El input `mode` decide dónde se pinta el bloque. Todo lo demás — variante, imagen, mensaje,
+tamaño, color — funciona igual en los tres.
+
+### `inline` (por defecto)
+
+Se renderiza en el flujo del documento, como cualquier otro bloque. Úsalo dentro del hueco
+que está sustituyendo: el cuerpo de un panel, el placeholder de una tabla, una tarjeta que
+todavía no se ha resuelto.
+
+```html
+<hub-loading message="Obteniendo facturas…" />
+```
+
+### `overlay`
+
+Posicionado en absoluto sobre su contenedor, de modo que el contenido anterior sigue visible
+por debajo mientras se ejecuta el refresco.
+
+> El contenedor debe establecer un contexto de posicionamiento — dale `position: relative`.
+
+```html
+<section class="panel" style="position: relative">
+	<article>…contenido ya renderizado…</article>
+
+	@if (refreshing()) {
+		<hub-loading mode="overlay" variant="ring" message="Actualizando…" />
+	}
+</section>
+```
+
+### `fullscreen`
+
+Fijado al viewport, cubriendo la aplicación. Decláralo en una plantilla cuando el componente
+sea el dueño del estado, o deja que [`HubLoadingService`](#-api-programática) lo monte por ti.
+
+```html
+@if (booting()) {
+	<hub-loading mode="fullscreen" variant="pulse" message="Iniciando…" />
+}
+```
+
+### Backdrop
+
+`backdrop` pinta la capa translúcida detrás del indicador. Solo se aplica a `overlay` y
+`fullscreen` — un bloque en línea no tiene nada que cubrir — y está activo por defecto.
+
+```html
+<hub-loading mode="overlay" [backdrop]="false" />
+```
+
+## 🎛️ Variantes
+
+Cinco indicadores, todos dibujados con CSS. Se eligen con el input `variant`.
+
+| Variante | Forma |
+| --- | --- |
+| `spinner` | Arco que gira (la opción por defecto). |
+| `dots` | Tres puntos que laten en secuencia. |
+| `bars` | Barras que suben y bajan. |
+| `pulse` | Un único disco que se expande y se desvanece. |
+| `ring` | Un anillo completo con un destello que lo recorre. |
+
+```html
+<hub-loading variant="dots" />
+<hub-loading variant="bars" size="lg" color="success" />
+<hub-loading variant="ring" color="#7c3aed" />
+```
+
+`size` elige entre `sm`, `md` (por defecto) y `lg`. Cada paso reajusta los tokens en lugar de
+fijar dimensiones a fuego — `--hub-loading-size` (`1.5rem` / `2.5rem` / `4rem`), el grosor del
+indicador `--hub-loading-thickness` y el `--hub-loading-font-size` del mensaje —, así que
+cualquier valor fuera de esos tres pasos está a una propiedad CSS de distancia:
+
+```css
+.hero-loading {
+	--hub-loading-size: 6rem;
+}
+```
+
+`color` acepta un nombre de acento semántico (`primary`, `success`, `brand`…), un color literal
+(`#7c3aed`, `rgb(...)`, `oklch(...)`) o una referencia `var(...)`. Las palabras simples se resuelven
+al token del design system `var(--hub-sys-color-<nombre>, <nombre>)`, de modo que los nombres no
+registrados y los colores con nombre de CSS siguen pintando.
+
+## 🖼️ Imagen y marca
+
+Asigna a `image` una URL o un data URI y sustituirá al indicador integrado — el caso habitual
+es el logo del producto en la pantalla de arranque. `imageAnimation` le da movimiento.
+
+```html
+<hub-loading mode="fullscreen" image="/assets/logo.svg" imageAnimation="pulse" message="Preparando tu espacio…" />
+```
+
+| `imageAnimation` | Efecto |
+| --- | --- |
+| `none` | Imagen estática (por defecto). |
+| `spin` | Rotación continua. |
+| `pulse` | Latido rítmico de escala/opacidad. |
+
+Dimensiona el recurso con `--hub-loading-image-size` y usa `--hub-loading-speed` para mantener
+la animación al compás del resto del movimiento de tu marca.
+
+Todo lo que se proyecte en el componente se renderiza bajo el mensaje, que es donde encaja el
+contexto adicional o una vía de escape:
+
+```html
+<hub-loading mode="fullscreen" message="Importando 12.480 filas…">
+	<button type="button" (click)="cancel()">Cancelar importación</button>
+</hub-loading>
+```
+
+## 🧰 API programática
+
+`HubLoadingService` cubre el caso que el componente declarativo no puede: trabajo que arranca
+en un servicio, en un guard de rutas o en un effect, donde ninguna plantilla es dueña del flag.
+Monta un único `<hub-loading>` a pantalla completa sobre `document.body` la primera vez que hace falta.
+
+```typescript
+import { inject } from '@angular/core';
+import { HubLoadingService } from 'ng-hub-ui-loading';
+
+@Injectable({ providedIn: 'root' })
+export class ReportService {
+	private readonly loading = inject(HubLoadingService);
+
+	async export(): Promise<void> {
+		this.loading.show({ message: 'Generando el informe…' });
+		try {
+			await this.buildReport();
+		} finally {
+			this.loading.hide();
+		}
+	}
+}
+```
+
+### Contador de referencias
+
+`show()` incrementa un contador interno y `hide()` lo decrementa; la superposición solo se
+destruye cuando el contador llega a cero. Así, dos tareas concurrentes pueden llamar cada una
+a `show()` / `hide()` sin que la primera en terminar desmonte la superposición que la segunda
+todavía necesita. `hideAll()` fuerza el contador a cero — la llamada correcta desde un manejador
+global de errores o un cambio de ruta, donde puede que los `hide()` pendientes no lleguen nunca.
+
+```typescript
+this.loading.show(); // contador 1 — aparece la superposición
+this.loading.show(); // contador 2 — la misma superposición
+this.loading.hide(); // contador 1 — la superposición sigue
+this.loading.hide(); // contador 0 — la superposición se destruye
+```
+
+El contador está limitado a cero, así que un `hide()` de más es inofensivo: no puede dejarlo
+en negativo ni convertir un `show()` posterior en una operación vacía.
+
+### Actualizar una superposición viva
+
+`update()` cambia in situ la superposición visible — normalmente el mensaje, según una tarea
+larga avanza por sus fases.
+
+```typescript
+this.loading.show({ variant: 'ring', message: 'Conectando…' });
+this.loading.update({ message: 'Descargando…' });
+this.loading.update({ message: 'Casi está…' });
+this.loading.hide();
+```
+
+Las opciones se acumulan en lugar de reemplazarse, y los dos valores vacíos significan cosas
+distintas: una clave **omitida** (o `undefined`) deja el valor actual como está, mientras que
+`null` lo borra. Por eso `{ message: null }` elimina el texto y `{ message: undefined }` lo
+conserva. Las opciones acumuladas se descartan cuando el contador llega a cero, de modo que la
+siguiente superposición nunca hereda un mensaje viejo de una operación terminada.
+
+`isLoading` es un signal, así que el resto de la aplicación puede reaccionar al mismo estado:
+
+```typescript
+readonly busy = this.loading.isLoading; // Signal<boolean>
+```
+
+### Valores por defecto con `provideHubLoading()`
+
+Registra el provider una vez para redefinir los valores por defecto de toda la aplicación — la
+imagen de marca, la variante preferida, una etiqueta traducida — en lugar de repetirlos en cada
+punto de llamada. Alcanza a **ambos** consumidores: las superposiciones del servicio *y* cada
+`<hub-loading>` escrito en una plantilla, porque cada input del componente recurre a la misma
+configuración. Un binding por instancia sigue ganando en local, y las opciones concretas de
+`show()` / `update()` se fusionan por encima.
+
+```typescript
+// app.config.ts
+import { ApplicationConfig } from '@angular/core';
+import { provideHubLoading } from 'ng-hub-ui-loading';
+
+export const appConfig: ApplicationConfig = {
+	providers: [
+		provideHubLoading({
+			variant: 'ring',
+			color: 'brand',
+			backdrop: true,
+			ariaLabel: 'Cargando, espera un momento'
+		})
+	]
+};
+```
+
+La configuración se respalda en el token de inyección `HUB_LOADING_CONFIG`, que puedes proveer
+directamente si necesitas calcularla a partir de otra dependencia. Su valor sin configurar se
+exporta como `HUB_LOADING_DEFAULT_CONFIG` — los mismos valores que figuran abajo como valor por
+defecto de cada input.
+
+## 📖 Referencia de la API
+
+### `HubLoadingComponent`
+
+Selector: `hub-loading`. Standalone, `OnPush`, inputs signal.
+
+| Input | Tipo | Por defecto | Descripción |
+| --- | --- | --- | --- |
+| `mode` | `'inline' \| 'overlay' \| 'fullscreen'` | `'inline'` | Dónde se pinta el bloque. `overlay` se posiciona en absoluto sobre el contenedor (que necesita `position: relative`); `fullscreen` queda fijado al viewport. |
+| `variant` | `'spinner' \| 'dots' \| 'bars' \| 'pulse' \| 'ring'` | `'spinner'` | Qué indicador CSS dibujar. Se ignora cuando `image` está definido. |
+| `image` | `string \| null` | `null` | URL o data URI que se renderiza en lugar del indicador integrado. |
+| `imageAnimation` | `'none' \| 'spin' \| 'pulse'` | `'none'` | Animación aplicada a `image`. |
+| `message` | `string \| null` | `null` | Texto renderizado bajo el indicador. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Escala del indicador; mapea sobre `--hub-loading-size`, que siempre lo sobrescribe. |
+| `color` | `string \| null` | `null` | Color de acento: nombre semántico, hex, `rgb()`, `oklch()` o `var(...)`. Se resuelve con `resolveHubAccent()`. |
+| `backdrop` | `boolean` | `true` | Capa translúcida detrás del indicador. Solo aplica a `overlay` y `fullscreen`. Se lee con `booleanAttribute`, así que el atributo `backdrop` a secas también funciona. |
+| `ariaLabel` | `string` | `'Loading'` | Nombre accesible de la región de estado. |
+
+Este componente no tiene outputs. El contenido proyectado en él se renderiza bajo el mensaje.
+
+> Todos los valores por defecto salvo el de `mode` vienen del `HUB_LOADING_CONFIG` inyectado.
+> Los de la tabla son los valores sin configurar; `provideHubLoading()` los redefine para toda
+> la aplicación.
+
+### `HubLoadingService`
+
+Inyectable (`providedIn: 'root'`). Gobierna una única superposición a pantalla completa adjunta a `document.body`.
+
+| Miembro | Firma | Descripción |
+| --- | --- | --- |
+| `show` | `(options?: HubLoadingOptions) => void` | Incrementa el contador y crea la superposición si aún no está montada. |
+| `hide` | `() => void` | Decrementa el contador; destruye la superposición cuando llega a cero. |
+| `hideAll` | `() => void` | Fuerza el contador a cero y destruye la superposición. |
+| `update` | `(options: HubLoadingOptions) => void` | Aplica nuevas opciones a la superposición visible. |
+| `isLoading` | `Signal<boolean>` | Si hay una superposición montada en este momento. |
+
+### `provideHubLoading(config?)`
+
+Provider de entorno que registra los valores por defecto de los que parte cada indicador, a
+través del token de inyección `HUB_LOADING_CONFIG`. Las claves omitidas conservan su valor de
+`HUB_LOADING_DEFAULT_CONFIG`.
+
+```typescript
+function provideHubLoading(config?: Partial<HubLoadingConfig>): EnvironmentProviders;
+```
+
+### `HubLoadingOptions`
+
+Las opciones visuales que aceptan `show()` y `update()`, y que `provideHubLoading()` recibe como
+valores por defecto de la aplicación. Reflejan los inputs del componente, menos `mode` — una
+superposición programática siempre es a pantalla completa.
+
+| Opción | Tipo | Descripción |
+| --- | --- | --- |
+| `variant` | `'spinner' \| 'dots' \| 'bars' \| 'pulse' \| 'ring'` | Indicador a dibujar. |
+| `image` | `string \| null` | Imagen o logo que sustituye al indicador. |
+| `imageAnimation` | `'none' \| 'spin' \| 'pulse'` | Animación aplicada a `image`. |
+| `message` | `string \| null` | Texto bajo el indicador. |
+| `size` | `'sm' \| 'md' \| 'lg'` | Escala del indicador. |
+| `color` | `string \| null` | Color de acento. |
+| `backdrop` | `boolean` | Capa translúcida detrás del indicador. |
+| `ariaLabel` | `string` | Nombre accesible de la región de estado. |
+
+`HubLoadingConfig` es la misma forma con todos los miembros obligatorios — es lo que contiene el
+token de inyección una vez resuelto.
+
+### Tipos exportados
+
+```typescript
+type HubLoadingMode = 'inline' | 'overlay' | 'fullscreen';
+type HubLoadingVariant = 'spinner' | 'dots' | 'bars' | 'pulse' | 'ring';
+type HubLoadingSize = 'sm' | 'md' | 'lg';
+type HubLoadingImageAnimation = 'none' | 'spin' | 'pulse';
+```
+
+También se exportan: `HubLoadingOptions`, `HubLoadingConfig`, `HUB_LOADING_CONFIG` y
+`HUB_LOADING_DEFAULT_CONFIG`.
+
+## 🎨 Estilos / Variables CSS
+
+El componente declara los valores por defecto de sus tokens en `:where(.hub-loading)` —
+especificidad cero, así que cualquier regla del consumidor gana — y cada uno sube por la escalera
+de la familia: primero la capa semántica `--hub-sys-*`, después la primitiva `--hub-ref-*` y por
+último un literal. Por eso el bloque ya encaja con tu tema, y con su modo oscuro, antes de
+sobrescribir nada. Los valores sin equivalente honesto en el design system (el diámetro de un
+indicador, el periodo de un ciclo, un radio de desenfoque) llevan un literal en lugar de tomar
+prestado un token `sys` que significa otra cosa.
+
+Los estilos van deliberadamente sin encapsular, para que una hoja global pueda re-vestir el
+indicador — y para que la superposición montada por el servicio, creada fuera del ámbito de
+estilos de cualquier componente, se pinte.
+
+| Variable | Por defecto | Descripción |
+| --- | --- | --- |
+| `--hub-loading-accent` | `var(--hub-sys-color-primary, #0d6efd)` | Color del indicador. Es donde escribe el input `color`. |
+| `--hub-loading-size` | `2.5rem` | Tamaño de la caja del indicador. Es donde mapea el input `size`. |
+| `--hub-loading-thickness` | `calc(var(--hub-ref-border-width, 1px) * 3)` | Grosor del trazo de los indicadores `spinner` y `ring`. |
+| `--hub-loading-speed` | `0.9s` | Duración de un ciclo de animación, para los indicadores y para las animaciones de imagen. |
+| `--hub-loading-gap` | `var(--hub-sys-gap-2, var(--hub-ref-space-2, 0.5rem))` | Espacio entre indicador, mensaje y contenido proyectado. |
+| `--hub-loading-text-color` | `var(--hub-sys-text-primary, var(--hub-ref-color-gray-900, #212529))` | Color del mensaje. |
+| `--hub-loading-font-size` | `var(--hub-ref-font-size-sm, 0.875rem)` | Tamaño de fuente del mensaje. |
+| `--hub-loading-backdrop-bg` | `color-mix(in srgb, var(--hub-sys-surface-page, #fff) 72%, transparent)` | Fondo del backdrop en `overlay` / `fullscreen`. Sigue la superficie de página del propio tema, así que el velo es blanco en temas claros y oscuro en temas oscuros. |
+| `--hub-loading-backdrop-blur` | `2px` | Radio de desenfoque del backdrop. |
+| `--hub-loading-z-index` | `var(--hub-sys-zindex-modal, 1055)` | Orden de apilado de la capa `fullscreen`. |
+| `--hub-loading-image-size` | `var(--hub-loading-size)` | Tamaño con el que se renderiza el recurso de `image` — sigue al tamaño del indicador mientras no digas lo contrario. |
+
+```css
+hub-loading {
+	--hub-loading-accent: var(--hub-sys-color-brand);
+	--hub-loading-size: 3rem;
+	--hub-loading-speed: 1.2s;
+	--hub-loading-backdrop-blur: 4px;
+}
+```
+
+### El mixin Sass `hub-loading-theme()`
+
+Para proyectos con Sass, `hub-loading-theme()` re-viste el bloque en un solo include. Todos los
+parámetros son opcionales y valen `null` por defecto, así que solo se emiten los que pasas como
+overrides `--hub-loading-*` — el resto conserva los valores del componente. Está basado en tokens
+y es autocontenido (sin dependencia de Bootstrap).
+
+```scss
+@use 'ng-hub-ui-loading/styles' as hub;
+
+.app-shell {
+	@include hub.hub-loading-theme(
+		$accent: var(--hub-sys-color-brand),
+		$size: 3.5rem,
+		$speed: 1.2s,
+		$backdrop-bg: rgba(15, 23, 42, 0.72),
+		$backdrop-blur: 4px
+	);
+}
+```
+
+Parámetros disponibles: `$accent`, `$size`, `$thickness`, `$speed`, `$gap`, `$text-color`,
+`$font-size`, `$backdrop-bg`, `$backdrop-blur`, `$z-index`, `$image-size`.
+
+### Clases BEM
+
+La estructura interna es estable y direccionable, para los casos a los que un token no llega:
+
+| Clase | Elemento |
+| --- | --- |
+| `.hub-loading` | Bloque anfitrión. |
+| `.hub-loading--inline` · `--overlay` · `--fullscreen` | Modificadores de modo. |
+| `.hub-loading--sm` · `--md` · `--lg` | Modificadores de tamaño; cada uno reajusta los tokens de tamaño, grosor y tipografía. |
+| `.hub-loading--backdrop` | Presente solo cuando se pinta el velo (nunca en modo `inline`). |
+| `.hub-loading__indicator` | El indicador puramente CSS, con un modificador `--spinner` / `--dots` / `--bars` / `--pulse` / `--ring`. |
+| `.hub-loading__dot` · `.hub-loading__bar` | Las piezas individuales de los indicadores `dots` y `bars`. |
+| `.hub-loading__image` | El recurso de `image`, con `--spin` / `--pulse` cuando está animado. |
+| `.hub-loading__message` | El texto del mensaje. |
+
+## ♿ Accesibilidad
+
+- El bloque es una **región de estado**: `role="status"`, `aria-live="polite"` y
+  `aria-busy="true"`. Una región viva «polite» se anuncia en la siguiente pausa natural, así que
+  iniciar una carga nunca interrumpe lo que la persona está leyendo.
+- `ariaLabel` (por defecto `'Loading'`) da nombre a esa región. Ponle algo específico cuando la
+  página pueda tener varias — «Cargando facturas» es mejor que un segundo «Cargando» genérico.
+- Como `message` vive dentro de la región viva, cambiarlo — incluso mediante
+  `HubLoadingService.update()` — se anuncia, y eso es lo que hace legible una tarea por fases
+  sin necesidad de verla.
+- El indicador y la `image` son decorativos (`aria-hidden`, `alt` vacío), así que nada se anuncia
+  dos veces. Lo que carga el significado es `ariaLabel` y el `message`.
+- Renderiza el bloque solo mientras el trabajo esté realmente en curso. Una región con
+  `aria-busy="true"` montada de forma permanente le dice a la tecnología de apoyo que la
+  aplicación está cargando para siempre.
+- Con `prefers-reduced-motion: reduce` la animación se **calma, no se congela** — un loader
+  congelado se lee como una interfaz colgada. El ciclo se ralentiza a `2.4s` y toda rotación o
+  escalado se sustituye por un simple fundido, de modo que nada gira ni da saltos.
+
+## 🖥️ Renderizado en servidor
+
+- `<hub-loading>` es marcado declarativo y CSS, sin ninguna API de navegador en la ruta de
+  renderizado, así que se renderiza en el servidor como cualquier otro componente.
+- `HubLoadingService` se puede llamar sin riesgo durante el renderizado en servidor: `show()`,
+  `update()`, `hide()` y `hideAll()` no necesitan su propia guarda de plataforma. Solo se omite
+  el montaje en el DOM — el contador de referencias sigue funcionando, así que `isLoading` sigue
+  siendo veraz y la hidratación no encuentra marcado huérfano de la superposición.
+
+## 📦 Dependencias entre pares
+
+```json
+{
+	"@angular/common": ">=21.0.0",
+	"@angular/core": ">=21.0.0",
+	"ng-hub-ui-utils": ">=22.8.0"
+}
+```
+
+## 📊 Changelog
+
+Consulta [CHANGELOG.md](./CHANGELOG.md) para el historial completo de versiones, y
+[BREAKING_CHANGES.md](./BREAKING_CHANGES.md) para las notas de migración.
+
+## 🤝 Contribución
+
+Las contribuciones son bienvenidas. Abre una issue para discutir cambios sustanciales antes de
+enviar un pull request, y asegúrate de documentar cada cambio de la biblioteca en `CHANGELOG.md`.
+
+## ☕ Soporte
+
+- **Issues**: [GitHub Issues](https://github.com/carlos-morcillo/ng-hub-ui/issues)
+- **Autor**: [Carlos Morcillo](https://www.carlosmorcillo.com)
+
+## 📄 Licencia
+
+MIT © [Carlos Morcillo](https://www.carlosmorcillo.com)

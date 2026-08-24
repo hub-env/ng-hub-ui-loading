@@ -1,0 +1,265 @@
+// ── Token defaults (zero specificity — any consumer rule wins) ────────────
+// Each token climbs the house ladder: the semantic `sys` layer first, the `ref`
+// primitive next, a literal last. Tokens with no honest counterpart in the design
+// system (an indicator's diameter, a loop period, a blur radius) carry a literal
+// rather than borrowing a `sys` token that means something else.
+:where(.hub-loading) {
+	--hub-loading-accent: var(--hub-sys-color-primary, #0d6efd);
+	--hub-loading-size: 2.5rem;
+	--hub-loading-thickness: calc(var(--hub-ref-border-width, 1px) * 3);
+	--hub-loading-speed: 0.9s;
+	--hub-loading-gap: var(--hub-sys-gap-2, var(--hub-ref-space-2, 0.5rem));
+	--hub-loading-text-color: var(--hub-sys-text-primary, var(--hub-ref-color-gray-900, #212529));
+	--hub-loading-font-size: var(--hub-ref-font-size-sm, 0.875rem);
+	// Follows the theme's own page surface, so the scrim is a white veil on light
+	// themes and a dark one on dark themes without a second token to keep in sync.
+	--hub-loading-backdrop-bg: color-mix(in srgb, var(--hub-sys-surface-page, #ffffff) 72%, transparent);
+	--hub-loading-backdrop-blur: 2px;
+	--hub-loading-z-index: var(--hub-sys-zindex-modal, 1055);
+	--hub-loading-image-size: var(--hub-loading-size);
+}
+
+// ── Base layout ───────────────────────────────────────────────────────────
+.hub-loading {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--hub-loading-gap);
+	color: var(--hub-loading-text-color);
+	font-size: var(--hub-loading-font-size);
+}
+
+// ── Modes ─────────────────────────────────────────────────────────────────
+// `overlay` covers the nearest positioned ancestor — the consumer owns that
+// containing block. `fullscreen` covers the viewport and is what the service mounts.
+.hub-loading--overlay {
+	position: absolute;
+	inset: 0;
+}
+
+.hub-loading--fullscreen {
+	position: fixed;
+	inset: 0;
+	z-index: var(--hub-loading-z-index);
+}
+
+// ── Backdrop ──────────────────────────────────────────────────────────────
+// Only meaningful where the indicator actually covers something; the component
+// never sets this class in `inline` mode.
+.hub-loading--backdrop {
+	background: var(--hub-loading-backdrop-bg);
+	-webkit-backdrop-filter: blur(var(--hub-loading-backdrop-blur));
+	backdrop-filter: blur(var(--hub-loading-backdrop-blur));
+}
+
+// ── Size steps (retune the tokens; never hard-code a dimension) ───────────
+.hub-loading--sm {
+	--hub-loading-size: 1.5rem;
+	--hub-loading-thickness: calc(var(--hub-ref-border-width, 1px) * 2);
+	--hub-loading-font-size: var(--hub-ref-font-size-xs, 0.75rem);
+}
+
+.hub-loading--lg {
+	--hub-loading-size: 4rem;
+	--hub-loading-thickness: calc(var(--hub-ref-border-width, 1px) * 4);
+	--hub-loading-font-size: var(--hub-ref-font-size-base, 1rem);
+}
+
+// ── Indicator shell shared by every variant ───────────────────────────────
+.hub-loading__indicator {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	inline-size: var(--hub-loading-size);
+	block-size: var(--hub-loading-size);
+	color: var(--hub-loading-accent);
+}
+
+// ── Variant: spinner — a single arc chasing an almost invisible track ──────
+.hub-loading__indicator--spinner {
+	border: var(--hub-loading-thickness) solid color-mix(in srgb, var(--hub-loading-accent) 20%, transparent);
+	border-block-start-color: var(--hub-loading-accent);
+	border-radius: 50%;
+	animation: hub-loading-spin var(--hub-loading-speed) linear infinite;
+}
+
+// ── Variant: ring — a comet sweep masked into a ring ───────────────────────
+// The conic gradient paints the whole disc and the radial mask carves out the
+// centre, so the stroke width is a single token rather than four border sides.
+.hub-loading__indicator--ring {
+	background: conic-gradient(from 0deg, transparent 0%, var(--hub-loading-accent) 100%);
+	border-radius: 50%;
+	-webkit-mask: radial-gradient(
+		farthest-side,
+		transparent calc(100% - var(--hub-loading-thickness)),
+		#000 calc(100% - var(--hub-loading-thickness))
+	);
+	mask: radial-gradient(
+		farthest-side,
+		transparent calc(100% - var(--hub-loading-thickness)),
+		#000 calc(100% - var(--hub-loading-thickness))
+	);
+	animation: hub-loading-spin var(--hub-loading-speed) linear infinite;
+}
+
+// ── Variant: dots ─────────────────────────────────────────────────────────
+// Width goes intrinsic: three dots plus their gaps are wider than the nominal
+// indicator box, and clamping it would squash them.
+.hub-loading__indicator--dots {
+	inline-size: auto;
+	gap: calc(var(--hub-loading-size) / 5);
+}
+
+.hub-loading__dot {
+	flex: 0 0 auto;
+	inline-size: calc(var(--hub-loading-size) / 4);
+	block-size: calc(var(--hub-loading-size) / 4);
+	background: var(--hub-loading-accent);
+	border-radius: 50%;
+	animation: hub-loading-dot var(--hub-loading-speed) ease-in-out infinite;
+}
+
+.hub-loading__dot:nth-child(2) {
+	animation-delay: calc(var(--hub-loading-speed) / 6);
+}
+
+.hub-loading__dot:nth-child(3) {
+	animation-delay: calc(var(--hub-loading-speed) / 3);
+}
+
+// ── Variant: bars ─────────────────────────────────────────────────────────
+.hub-loading__indicator--bars {
+	gap: calc(var(--hub-loading-size) / 8);
+}
+
+.hub-loading__bar {
+	flex: 0 0 auto;
+	inline-size: calc(var(--hub-loading-size) / 8);
+	block-size: 100%;
+	background: var(--hub-loading-accent);
+	border-radius: var(--hub-sys-radius-pill, 50rem);
+	transform-origin: center;
+	animation: hub-loading-bar var(--hub-loading-speed) ease-in-out infinite;
+}
+
+.hub-loading__bar:nth-child(2) {
+	animation-delay: calc(var(--hub-loading-speed) / 8);
+}
+
+.hub-loading__bar:nth-child(3) {
+	animation-delay: calc(var(--hub-loading-speed) / 4);
+}
+
+.hub-loading__bar:nth-child(4) {
+	animation-delay: calc(var(--hub-loading-speed) * 3 / 8);
+}
+
+// ── Variant: pulse ────────────────────────────────────────────────────────
+.hub-loading__indicator--pulse {
+	background: var(--hub-loading-accent);
+	border-radius: 50%;
+	animation: hub-loading-pulse calc(var(--hub-loading-speed) * 1.4) ease-in-out infinite;
+}
+
+// ── Branding image ────────────────────────────────────────────────────────
+.hub-loading__image {
+	inline-size: var(--hub-loading-image-size);
+	block-size: var(--hub-loading-image-size);
+	object-fit: contain;
+}
+
+.hub-loading__image--spin {
+	animation: hub-loading-spin calc(var(--hub-loading-speed) * 1.6) linear infinite;
+}
+
+.hub-loading__image--pulse {
+	animation: hub-loading-pulse calc(var(--hub-loading-speed) * 1.6) ease-in-out infinite;
+}
+
+// ── Message ───────────────────────────────────────────────────────────────
+.hub-loading__message {
+	margin: 0;
+	color: var(--hub-loading-text-color);
+	font-size: var(--hub-loading-font-size);
+	text-align: center;
+}
+
+// ── Reduced motion ────────────────────────────────────────────────────────
+// A frozen loader reads as a hung UI, so motion is kept — but slowed to a calm
+// breathing rhythm, and every rotation or scale is swapped for a plain fade so
+// nothing spins or jumps.
+@media (prefers-reduced-motion: reduce) {
+	.hub-loading {
+		--hub-loading-speed: 2.4s;
+	}
+
+	.hub-loading__indicator--spinner,
+	.hub-loading__indicator--ring,
+	.hub-loading__indicator--pulse,
+	.hub-loading__dot,
+	.hub-loading__bar,
+	.hub-loading__image--spin,
+	.hub-loading__image--pulse {
+		animation-name: hub-loading-fade;
+		animation-duration: var(--hub-loading-speed);
+		animation-timing-function: ease-in-out;
+	}
+}
+
+// ── Keyframes ─────────────────────────────────────────────────────────────
+@keyframes hub-loading-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes hub-loading-dot {
+	0%,
+	80%,
+	100% {
+		opacity: 0.3;
+		transform: scale(0.7);
+	}
+
+	40% {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes hub-loading-bar {
+	0%,
+	100% {
+		transform: scaleY(0.35);
+	}
+
+	50% {
+		transform: scaleY(1);
+	}
+}
+
+@keyframes hub-loading-pulse {
+	0%,
+	100% {
+		opacity: 0.35;
+		transform: scale(0.75);
+	}
+
+	50% {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes hub-loading-fade {
+	0%,
+	100% {
+		opacity: 0.35;
+	}
+
+	50% {
+		opacity: 1;
+	}
+}

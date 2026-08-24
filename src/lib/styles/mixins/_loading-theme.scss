@@ -1,0 +1,79 @@
+// ─────────────────────────────────────────────────────────────────────────
+// hub-loading-theme — one-call theming for `<hub-loading>`
+// ─────────────────────────────────────────────────────────────────────────
+//
+// Override the `--hub-loading-*` design tokens in a single include. Every
+// parameter is OPTIONAL and defaults to `null`: only the parameters you pass
+// are emitted, so a theme that cares about the accent alone does not freeze
+// the other ten tokens at today's defaults. Token-based and self-contained
+// (no Bootstrap dependencies).
+//
+// One accent drives all five indicator variants, so `$accent` recolours the
+// spinner, the dots, the bars, the pulse and the ring together. `$backdrop-bg`
+// and `$backdrop-blur` only reach the `overlay` and `fullscreen` modes — an
+// inline block covers nothing and paints no scrim.
+//
+// @example
+//
+//   @use 'ng-hub-ui-loading/styles' as *;
+//
+//   .app-shell--dark {
+//     @include hub-loading-theme(
+//       $accent: #7dd3fc,
+//       $text-color: rgba(255, 255, 255, 0.82),
+//       $backdrop-bg: rgba(15, 23, 42, 0.72),
+//       $speed: 1.2s
+//     );
+//   }
+//
+// scss-docs-start hub-loading-theme
+@mixin hub-loading-theme(
+	$accent: null,
+	$size: null,
+	$thickness: null,
+	$speed: null,
+	$gap: null,
+	$text-color: null,
+	$font-size: null,
+	$backdrop-bg: null,
+	$backdrop-blur: null,
+	$z-index: null,
+	$image-size: null
+) {
+	:where(.hub-loading) {
+		@if $accent != null {
+			--hub-loading-accent: #{$accent};
+		}
+		@if $size != null {
+			--hub-loading-size: #{$size};
+		}
+		@if $thickness != null {
+			--hub-loading-thickness: #{$thickness};
+		}
+		@if $speed != null {
+			--hub-loading-speed: #{$speed};
+		}
+		@if $gap != null {
+			--hub-loading-gap: #{$gap};
+		}
+		@if $text-color != null {
+			--hub-loading-text-color: #{$text-color};
+		}
+		@if $font-size != null {
+			--hub-loading-font-size: #{$font-size};
+		}
+		@if $backdrop-bg != null {
+			--hub-loading-backdrop-bg: #{$backdrop-bg};
+		}
+		@if $backdrop-blur != null {
+			--hub-loading-backdrop-blur: #{$backdrop-blur};
+		}
+		@if $z-index != null {
+			--hub-loading-z-index: #{$z-index};
+		}
+		@if $image-size != null {
+			--hub-loading-image-size: #{$image-size};
+		}
+	}
+}
+// scss-docs-end hub-loading-theme

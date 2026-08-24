@@ -1,0 +1,36 @@
+{
+	"name": "ng-hub-ui-loading",
+	"version": "22.0.0",
+	"license": "MIT",
+	"description": "Customizable loading indicator for Angular: inline block, container overlay or fullscreen, with CSS-only variants, branding image and a programmatic service. Part of the ng-hub-ui family.",
+	"author": "Carlos Morcillo <carlos.morcillo@me.com> (https://www.carlosmorcillo.com)",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/carlos-morcillo/ng-hub-ui-loading.git"
+	},
+	"bugs": {
+		"url": "https://github.com/carlos-morcillo/ng-hub-ui-loading/issues"
+	},
+	"homepage": "https://hubui.dev/en/loading/overview/",
+	"keywords": [
+		"angular",
+		"loading",
+		"spinner",
+		"loader",
+		"overlay",
+		"ng-hub-ui",
+		"standalone"
+	],
+	"peerDependencies": {
+		"@angular/common": ">=21.0.0",
+		"@angular/core": ">=21.0.0",
+		"ng-hub-ui-utils": ">=22.8.0"
+	},
+	"dependencies": {
+		"tslib": "^2.3.0"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"sideEffects": false
+}
