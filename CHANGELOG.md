@@ -1,5 +1,25 @@
 # Changelog
 
+## [22.1.0] - 2026-09-05
+
+### Added
+
+- `HubLoadingBarComponent` (`hub-loading-bar`), the thin page-progress strip that sits under the navbar. Three placements from one element: `inline` in the document flow, reserving its own row so nothing shifts when it appears; `overlay` against the nearest positioned ancestor, which is how it hangs off a navbar's lower edge; and `fixed` to the viewport at `--hub-loading-bar-offset`, for a navbar that is itself fixed.
+- `HubLoadingBarService`, the shared page-progress state. Callers are reference-counted, so a navigation and the requests its page fires cannot take the bar down from under each other — it completes when the last one does.
+- An anti-flicker grace period (`delay`, 100 ms): work that finishes inside it never paints a bar at all. A cached route that flashes a progress bar for 40 ms reads as a glitch, not as speed. Setting it to `0` reveals the bar synchronously, so an application that opts out of the grace period still sees it for a navigation that settles inside its own task.
+- A trickle that decelerates as it fills and stops at `max` (99). Nothing knows the real percentage of a page load, so only `complete()` may show 100%. The curve is `trickleFn`, swappable per application, and the default is exported as `hubLoadingBarTrickle()`.
+- Determinate mode through the `progress` input, whose three states are the whole contract: unbound follows the service, a number drives the bar and is published as `aria-valuenow`, and `null` hides it. Plus an `indeterminate` sweep for work with no measurable progress.
+- Accessibility contract on the bar: `role="progressbar"` with static bounds, a configurable `ariaLabel`, and `aria-hidden` while it is not painted. `aria-valuenow` is withheld whenever the number is invented — which is how ARIA marks an indeterminate progressbar, and better than announcing a made-up percentage.
+- `provideHubLoadingBarRouter()`, which runs the bar for exactly the length of a navigation, including one a guard rejects and one an error ends. Navigations are tracked with a flag rather than by pairing events one for one, so a `NavigationStart` missed during bootstrap cannot strand an unmatched `complete()`.
+- `hubLoadingBarInterceptor`, holding one reference for the lifetime of every HTTP request and balancing it in `finalize`, so an error or a cancelled request releases it too. `withoutHubLoadingBar()` and `HUB_LOADING_BAR_SKIP` take a poll or a heartbeat out of the count.
+- `provideHubLoadingBar()` and the `HUB_LOADING_BAR_CONFIG` / `HUB_LOADING_BAR_DEFAULT_CONFIG` exports, re-basing the defaults application-wide for the component, the service and both integrations.
+- Thirteen `--hub-loading-bar-*` CSS custom properties and the `hub-loading-bar-theme()` Sass mixin, shipped alongside `hub-loading-theme()` at `ng-hub-ui-loading/styles`.
+- `prefers-reduced-motion` treatment that slows the `indeterminate` sweep while leaving the determinate fill alone — the fill is the value being reported, not decoration, and freezing it would leave a bar that says nothing.
+
+### Changed
+
+- `@angular/router` is declared as an **optional** peer dependency. Only `provideHubLoadingBarRouter()` touches it; every other export works without a router.
+
 ## [22.0.0] - 2026-08-24
 
 ### Added

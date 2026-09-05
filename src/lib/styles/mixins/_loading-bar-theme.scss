@@ -1,0 +1,88 @@
+// ─────────────────────────────────────────────────────────────────────────
+// hub-loading-bar-theme — one-call theming for `<hub-loading-bar>`
+// ─────────────────────────────────────────────────────────────────────────
+//
+// Override the `--hub-loading-bar-*` design tokens in a single include. Every
+// parameter is OPTIONAL and defaults to `null`: only the parameters you pass
+// are emitted, so a theme that cares about the accent alone does not freeze
+// the other twelve tokens at today's defaults. Token-based and self-contained
+// (no Bootstrap dependencies).
+//
+// `$offset` is the one to reach for first when the bar hangs off a navbar: it
+// is the distance from the edge the `overlay` and `fixed` modes attach to, so
+// a fixed 56px header becomes `$offset: 56px` and nothing else has to move.
+// `$glow-*` only reach the leading edge, and `$indeterminate-speed` only the
+// sweep — a bar reporting a real percentage never runs it.
+//
+// @example
+//
+//   @use 'ng-hub-ui-loading/styles' as *;
+//
+//   .app-shell--dark {
+//     @include hub-loading-bar-theme(
+//       $accent: #7dd3fc,
+//       $height: 2px,
+//       $offset: 56px,
+//       $glow-blur: 14px
+//     );
+//   }
+//
+// scss-docs-start hub-loading-bar-theme
+@mixin hub-loading-bar-theme(
+	$accent: null,
+	$height: null,
+	$track-bg: null,
+	$radius: null,
+	$speed: null,
+	$fade: null,
+	$easing: null,
+	$glow-color: null,
+	$glow-blur: null,
+	$glow-spread: null,
+	$indeterminate-speed: null,
+	$offset: null,
+	$z-index: null
+) {
+	:where(.hub-loading-bar) {
+		@if $accent != null {
+			--hub-loading-bar-accent: #{$accent};
+		}
+		@if $height != null {
+			--hub-loading-bar-height: #{$height};
+		}
+		@if $track-bg != null {
+			--hub-loading-bar-track-bg: #{$track-bg};
+		}
+		@if $radius != null {
+			--hub-loading-bar-radius: #{$radius};
+		}
+		@if $speed != null {
+			--hub-loading-bar-speed: #{$speed};
+		}
+		@if $fade != null {
+			--hub-loading-bar-fade: #{$fade};
+		}
+		@if $easing != null {
+			--hub-loading-bar-easing: #{$easing};
+		}
+		@if $glow-color != null {
+			--hub-loading-bar-glow-color: #{$glow-color};
+		}
+		@if $glow-blur != null {
+			--hub-loading-bar-glow-blur: #{$glow-blur};
+		}
+		@if $glow-spread != null {
+			--hub-loading-bar-glow-spread: #{$glow-spread};
+		}
+		@if $indeterminate-speed != null {
+			--hub-loading-bar-indeterminate-speed: #{$indeterminate-speed};
+		}
+		@if $offset != null {
+			--hub-loading-bar-offset: #{$offset};
+		}
+		@if $z-index != null {
+			--hub-loading-bar-z-index: #{$z-index};
+		}
+	}
+}
+// scss-docs-end hub-loading-bar-theme

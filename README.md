@@ -6,7 +6,7 @@
 [![Angular](https://img.shields.io/badge/Angular-22%2B-red.svg)](https://angular.dev)
 [![License](https://img.shields.io/npm/l/ng-hub-ui-loading.svg)](LICENSE)
 
-Standalone loading block for Angular 22+ — an inline indicator, an overlay pinned over the container that is busy, or a fullscreen curtain, from a single `<hub-loading>` element. Five pure-CSS indicators, an optional logo or image instead of them, an optional message, and a counter-based `HubLoadingService` for the app-wide fullscreen case. Zero external dependencies; every colour and dimension is a `--hub-loading-*` CSS custom property.
+Standalone loading block for Angular 22+ — an inline indicator, an overlay pinned over the container that is busy, or a fullscreen curtain, from a single `<hub-loading>` element. Five pure-CSS indicators, an optional logo or image instead of them, an optional message, and a counter-based `HubLoadingService` for the app-wide fullscreen case. Alongside it, `<hub-loading-bar>` — the thin page-progress strip that sits under the navbar, wired to the router and to `HttpClient`. Zero external dependencies; every colour and dimension is a `--hub-loading-*` CSS custom property.
 
 ## Documentation and Live Examples
 
@@ -55,6 +55,7 @@ This library is part of the **ng-hub-ui** ecosystem:
 - [🎛️ Variants](#️-variants)
 - [🖼️ Image and Branding](#️-image-and-branding)
 - [🧰 Programmatic API](#-programmatic-api)
+- [📊 Page Progress Bar](#-page-progress-bar)
 - [📖 API Reference](#-api-reference)
 - [🎨 Styling / CSS Variables](#-styling--css-variables)
 - [♿ Accessibility](#-accessibility)
@@ -80,6 +81,8 @@ and that can render in flow, over its own container, or over the whole viewport.
 | [`ng-hub-ui-skeleton`](https://www.npmjs.com/package/ng-hub-ui-skeleton) | You already know the shape of what is coming and want the layout to hold its place — structural shimmer placeholders instead of a spinner. |
 | [`ng-hub-ui-metrics`](https://www.npmjs.com/package/ng-hub-ui-metrics) | You know the progress figure — a determinate progress bar, meter or ring that reports a value. |
 
+> **`<hub-loading-bar>` versus `<hub-progress>`.** They look alike and answer different questions. `hub-progress`, in `ng-hub-ui-metrics`, *displays a value you already know*: it is a data component, and its number is true. `hub-loading-bar` reports that something is happening when nobody knows how long it will take — it invents the number and never lets it reach the end. Use the metrics one for an upload that reports bytes; use this one for the strip under the navbar.
+
 The three compose: a skeleton for the list that is arriving, a `<hub-loading mode="overlay">`
 over the panel being refreshed, and a `<hub-progress>` for the upload that reports bytes.
 
@@ -94,6 +97,9 @@ over the panel being refreshed, and a `<hub-progress>` for the upload that repor
 - **Any accent colour** — `color` accepts a semantic design-system name, a hex value, `oklch()` or a `var(...)` reference, resolved through `resolveHubAccent()` from `ng-hub-ui-utils`.
 - **CSS-variable theming** — every colour, dimension and speed is a `--hub-loading-*` custom property, with a `hub-loading-theme()` Sass mixin for one-call re-skinning.
 - **Accessible by default** — `role="status"`, `aria-live="polite"` and `aria-busy="true"`, with a configurable `ariaLabel` and a `prefers-reduced-motion` treatment that calms the motion instead of freezing it.
+- **Page progress bar** — `<hub-loading-bar>`, the thin strip under the navbar: in flow, attached to a positioned ancestor, or fixed to the viewport at an offset you choose.
+- **Router and HTTP wiring** — `provideHubLoadingBarRouter()` runs the bar for exactly the length of a navigation (including one a guard rejects), `hubLoadingBarInterceptor` for the lifetime of every request, and `withoutHubLoadingBar()` keeps polls and heartbeats out of the count.
+- **A trickle that does not lie** — the bar advances in shrinking steps and stops short of the end, never paints at all for work that finishes inside its grace period, and withholds `aria-valuenow` while the number is invented.
 - **Standalone, `OnPush`, signal inputs** — and SSR-safe: on the server the counter still runs, only the DOM mount is skipped.
 
 ## 🚀 Quick Start
@@ -347,6 +353,112 @@ provide directly if you need to compute it from another dependency. Its unconfig
 value is exported as `HUB_LOADING_DEFAULT_CONFIG` — the same values listed as each input's
 default below.
 
+## 📊 Page Progress Bar
+
+`<hub-loading-bar>` is the other half of "something is happening": not *this region is
+busy*, but *the page itself is on its way*. It is the thin strip you already know from
+under a navbar, and it is driven by `HubLoadingBarService`.
+
+### The three decisions that make it believable
+
+- **It counts its callers.** A navigation and the three requests the page fires on arrival
+  are four references. The bar finishes when the last one does, not the first — with a
+  boolean, the fastest request would take the bar down while the page was still empty.
+- **It waits before painting anything.** Work that finishes inside `delay` (100 ms by
+  default) never shows a bar at all. A cached route that flashes a progress bar for 40 ms
+  reads as a glitch, not as speed.
+- **Its trickle never arrives.** Nothing here knows the real percentage, so the bar
+  advances in steps that shrink as it fills and stops at `max` (99). Only `complete()` may
+  show 100%, because only `complete()` knows it is true.
+
+### Placement
+
+```html
+<!-- Hanging off the bottom edge of a navbar. position: relative on the navbar is what
+     confines the bar to it — exactly the contract of <hub-loading mode="overlay">. -->
+<nav class="navbar" style="position: relative">
+	…
+	<hub-loading-bar mode="overlay" placement="bottom" />
+</nav>
+```
+
+```html
+<!-- Under a navbar that is itself fixed: pin the bar to the viewport and push it down. -->
+<hub-loading-bar mode="fixed" style="--hub-loading-bar-offset: 56px" />
+```
+
+```html
+<!-- In the flow. Reserves its own 3px row, so nothing shifts when it appears. -->
+<hub-loading-bar />
+```
+
+### Wiring it to the page
+
+The two integrations are opt-in and compose through the counter, so neither needs to know
+about the other.
+
+```typescript
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
+import { hubLoadingBarInterceptor, provideHubLoadingBar, provideHubLoadingBarRouter } from 'ng-hub-ui-loading';
+
+bootstrapApplication(AppComponent, {
+	providers: [
+		provideRouter(routes),
+
+		// One reference per navigation, released when it settles — including when a guard
+		// rejects it or an error ends it, the two cases that normally strand a bar.
+		provideHubLoadingBarRouter(),
+
+		// One reference per request. finalize() balances it on success, on error and on
+		// cancellation alike, so a cancelled typeahead cannot leave the bar at 90%.
+		provideHttpClient(withInterceptors([hubLoadingBarInterceptor])),
+
+		provideHubLoadingBar({ color: 'primary', delay: 120 })
+	]
+});
+```
+
+Without the interceptor the bar finishes the moment the navigation settles — which is when
+the component is created, not when its data arrives. With both, it spans the whole wait.
+
+Keep the requests the reader never asked about out of the count, or the bar never finishes:
+
+```typescript
+this.http.get('/api/heartbeat', { context: withoutHubLoadingBar() });
+```
+
+### Driving it by hand
+
+```typescript
+private readonly bar = inject(HubLoadingBarService);
+
+async import(): Promise<void> {
+	this.bar.start();
+	try {
+		await this.api.import();
+	} finally {
+		this.bar.complete(); // every start() needs exactly one complete()
+	}
+}
+```
+
+When the percentage is real, bind it instead and the bar stops following the service:
+
+```html
+<!-- A number drives the bar and is published as aria-valuenow -->
+<hub-loading-bar [progress]="uploaded()" color="success" />
+
+<!-- null hides it; leaving the input unbound hands the bar back to the service -->
+<hub-loading-bar [progress]="null" />
+```
+
+And when there is no percentage worth inventing, sweep instead of filling:
+
+```html
+<hub-loading-bar indeterminate [progress]="100" />
+```
+
 ## 📖 API Reference
 
 ### `HubLoadingComponent`
@@ -411,6 +523,86 @@ overlay is always fullscreen.
 
 `HubLoadingConfig` is the same shape with every member required — it is what the injection
 token holds once resolved.
+
+### `HubLoadingBarComponent`
+
+Selector: `hub-loading-bar`. Standalone, `OnPush`, signal inputs.
+
+| Input | Type | Default | Description |
+| --- | --- | --- | --- |
+| `mode` | `'inline' \| 'overlay' \| 'fixed'` | `'inline'` | Where the strip sits. `inline` reserves its own row in the flow; `overlay` is absolutely positioned against the nearest positioned ancestor; `fixed` is pinned to the viewport at `--hub-loading-bar-offset`. |
+| `placement` | `'top' \| 'bottom'` | `'top'` | Edge the `overlay` and `fixed` modes attach to. `inline` ignores it. |
+| `progress` | `number \| null \| undefined` | `undefined` | Three meanings. Unbound: follow `HubLoadingBarService`. A number (0–100): drive the bar directly, and publish it as `aria-valuenow`. `null`: hide the bar. |
+| `indeterminate` | `boolean` | `false` | Sweep a fragment across instead of filling. Read with `booleanAttribute`, so the bare attribute works. |
+| `glow` | `boolean` | `true` | Soft glow trailing the leading edge. |
+| `color` | `string \| null` | `null` | Accent for the fill: semantic name, hex, `oklch()` or `var(...)`. Resolved with `resolveHubAccent()`. |
+| `ariaLabel` | `string` | `'Loading'` | Accessible name of the progressbar. |
+
+This component has no outputs and projects no content.
+
+> Every default except `mode`'s and `placement`'s comes from the injected
+> `HUB_LOADING_BAR_CONFIG`; `provideHubLoadingBar()` re-bases them application-wide.
+
+### `HubLoadingBarService`
+
+Injectable (`providedIn: 'root'`). Owns the shared page-progress state that every unbound
+`<hub-loading-bar>` renders. Provide it on a component instead to give one bar its own
+state.
+
+| Member | Signature | Description |
+| --- | --- | --- |
+| `start` | `() => void` | Registers one caller. The first begins a cycle — after the grace period, not immediately. |
+| `complete` | `() => void` | Retires one caller. At zero the bar runs to 100% and fades, or disappears unseen if it never got painted. |
+| `completeAll` | `() => void` | Drops every pending caller and completes the bar at once. |
+| `set` | `(value: number) => void` | Moves the bar to an exact value and reveals it without waiting out the grace period. Clamped to 0–100, not to `max`. |
+| `inc` | `(amount?: number) => void` | Advances the bar and reveals it. Without an amount the configured trickle curve decides. Capped at `max`. |
+| `reset` | `() => void` | Cancels everything: no completion animation, no pending callers, nothing on screen. |
+| `progress` | `Signal<number>` | Current fill, 0–100. |
+| `isActive` | `Signal<boolean>` | Whether any caller is still waiting — true even during the grace period. |
+| `isVisible` | `Signal<boolean>` | Whether the bar is actually painted — false during the grace period, still true through the completion tail. |
+
+### `provideHubLoadingBar(config?)`
+
+Environment provider registering the defaults the bar starts from, through the
+`HUB_LOADING_BAR_CONFIG` injection token. Omitted keys keep their
+`HUB_LOADING_BAR_DEFAULT_CONFIG` value.
+
+```typescript
+function provideHubLoadingBar(config?: Partial<HubLoadingBarConfig>): EnvironmentProviders;
+```
+
+### `HubLoadingBarConfig`
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `min` | `number` | `8` | Value the bar jumps to when it appears. Never zero — an empty bar reads as a bar that is not working. |
+| `max` | `number` | `99` | Ceiling the trickle may not cross, so it cannot promise an ending it does not know about. |
+| `trickleSpeed` | `number` | `250` | Milliseconds between trickle ticks. |
+| `trickle` | `boolean` | `true` | Whether the bar advances on its own while it waits. |
+| `trickleFn` | `(progress: number) => number` | `hubLoadingBarTrickle` | Step function. The exported default returns 10 / 4 / 2 / 0.5 as the bar fills. |
+| `delay` | `number` | `100` | Grace period before anything is painted. Work finishing inside it shows no bar. `0` reveals the bar synchronously, so work that settles within its own task is still shown. |
+| `completeDelay` | `number` | `300` | How long the completed bar stays at 100% before fading. Wants to be at least `--hub-loading-bar-speed`. |
+| `color` | `string \| null` | `null` | Default accent. |
+| `glow` | `boolean` | `true` | Default glow. |
+| `ariaLabel` | `string` | `'Loading'` | Default accessible name. |
+
+### `provideHubLoadingBarRouter()`
+
+Environment provider that runs the bar for exactly the length of each navigation, including
+one a guard cancels and one an error ends. Navigations are tracked with a flag rather than
+by pairing events one for one, so a `NavigationStart` missed during bootstrap cannot leave
+an unmatched `complete()` behind.
+
+Requires `@angular/router`, declared as an **optional** peer dependency: nothing else in the
+package touches it.
+
+### `hubLoadingBarInterceptor` and `withoutHubLoadingBar()`
+
+A functional `HttpInterceptorFn` that holds one reference for the lifetime of every request,
+balanced in `finalize` so an error or a cancellation releases it too. `withoutHubLoadingBar()`
+builds the `HttpContext` that takes one request out of the count — reach for it on anything
+the reader did not ask for, or the bar never finishes. `HUB_LOADING_BAR_SKIP` is the
+underlying `HttpContextToken`.
 
 ### Exported types
 
@@ -483,6 +675,40 @@ self-contained (no Bootstrap dependency).
 Available parameters: `$accent`, `$size`, `$thickness`, `$speed`, `$gap`, `$text-color`,
 `$font-size`, `$backdrop-bg`, `$backdrop-blur`, `$z-index`, `$image-size`.
 
+### The loading bar's variables
+
+Declared on `:where(.hub-loading-bar)`, same zero-specificity contract. The two durations
+are literals rather than `--hub-sys-transition-*`: the fill has to arrive roughly as the
+next trickle tick lands, so it is coupled to `trickleSpeed`, and borrowing the application's
+transition scale would let a slow theme leave the bar a tick behind the number it is drawing.
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `--hub-loading-bar-accent` | `var(--hub-sys-color-primary, #0d6efd)` | Fill colour. What the `color` input writes into. |
+| `--hub-loading-bar-height` | `3px` | Thickness of the strip. |
+| `--hub-loading-bar-track-bg` | `transparent` | Unfilled track. Transparent so an idle bar draws no permanent line under the navbar. |
+| `--hub-loading-bar-radius` | `0` | Corner radius of the strip and its fill. |
+| `--hub-loading-bar-speed` | `200ms` | How long the fill takes to catch up with a new value. |
+| `--hub-loading-bar-fade` | `300ms` | Fade in and out of the whole strip. |
+| `--hub-loading-bar-easing` | `linear` | Easing of the fill. Linear reads as steady progress rather than as a flourish. |
+| `--hub-loading-bar-glow-color` | `var(--hub-loading-bar-accent)` | Colour of the glow at the leading edge. |
+| `--hub-loading-bar-glow-blur` | `10px` | Blur radius of that glow. |
+| `--hub-loading-bar-glow-spread` | `1px` | Spread radius of that glow. |
+| `--hub-loading-bar-indeterminate-speed` | `1.6s` | Period of one `indeterminate` sweep. Calmed under `prefers-reduced-motion`. |
+| `--hub-loading-bar-offset` | `0px` | Distance from the edge the `overlay` and `fixed` modes attach to — how far under a navbar the bar hangs. |
+| `--hub-loading-bar-z-index` | `var(--hub-sys-zindex-sticky, 1020)` | Stack order of the positioned modes. Chrome level, deliberately below dialogs and toasts. |
+
+```css
+hub-loading-bar {
+	--hub-loading-bar-accent: var(--hub-sys-color-brand);
+	--hub-loading-bar-height: 2px;
+	--hub-loading-bar-offset: 56px;
+}
+```
+
+`hub-loading-bar-theme()` is the matching Sass mixin, with the same optional-parameter
+contract as `hub-loading-theme()`.
+
 ### BEM classes
 
 The internal structure is stable and addressable, for the cases a token cannot reach:
@@ -516,6 +742,19 @@ The internal structure is stable and addressable, for the cases a token cannot r
   loader reads as a hung UI. The cycle slows to `2.4s` and every rotation or scale is
   swapped for a plain fade, so nothing spins or jumps.
 
+### The loading bar
+
+- The bar is a `role="progressbar"` with static `aria-valuemin` / `aria-valuemax`, named by
+  `ariaLabel`, and `aria-hidden` while it is not painted.
+- **`aria-valuenow` is withheld unless the value is real.** While the service trickles, the
+  number on screen is invented — nothing knows the real percentage of a page load — and a
+  progressbar without `aria-valuenow` is exactly how ARIA spells "indeterminate". Announcing
+  a made-up "43%" would be worse than announcing nothing. The value appears only when a
+  caller has bound one, and is withheld again under `indeterminate`.
+- Under `prefers-reduced-motion: reduce` the `indeterminate` sweep slows considerably. The
+  determinate fill is left alone on purpose: it is not decoration, it is the value being
+  reported, and freezing it would leave a bar that says nothing.
+
 ## 🖥️ Server-Side Rendering
 
 - `<hub-loading>` is declarative markup and CSS with no browser API in the render path,
@@ -525,15 +764,27 @@ The internal structure is stable and addressable, for the cases a token cannot r
   skipped — the reference counter still runs, so `isLoading` stays truthful and hydration
   finds no orphan overlay markup.
 
+- `HubLoadingBarService` creates **no timer at all** on the server. This matters more than
+  it looks: a repeating interval inside Angular's zone would keep `ApplicationRef.isStable`
+  false forever and hang the render. The counter still runs, so `isActive` stays truthful,
+  and the bar is never painted server-side, so there is nothing to mismatch on hydration.
+  In the browser the timers run outside the zone, where signal writes still schedule change
+  detection but a 250 ms tick does not drive a whole application's worth of it.
+
 ## 📦 Peer Dependencies
 
 ```json
 {
 	"@angular/common": ">=21.0.0",
 	"@angular/core": ">=21.0.0",
+	"@angular/router": ">=21.0.0",
 	"ng-hub-ui-utils": ">=22.8.0"
 }
 ```
+
+`@angular/router` is **optional** (`peerDependenciesMeta`). Only
+`provideHubLoadingBarRouter()` touches it; everything else in the package works without a
+router.
 
 ## 📊 Changelog
 
