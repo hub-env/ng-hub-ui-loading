@@ -1,3 +1,4 @@
+import { effect } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HUB_LOADING_BAR_DEFAULT_CONFIG, hubLoadingBarTrickle, provideHubLoadingBar } from '../loading-bar-config';
@@ -64,6 +65,39 @@ describe('HubLoadingBarService', () => {
 
 			expect(service.isVisible()).toBe(false);
 			expect(service.progress()).toBe(0);
+		});
+	});
+
+	/**
+	 * A caller inside a reactive context must not be made to depend on the counter.
+	 *
+	 * `start()` and `complete()` read `pending` to decide what to do, and a read inside an
+	 * effect is a subscription. An interceptor is not untracked by Angular, so a request
+	 * fired from an effect used to subscribe that effect to the counter, and every
+	 * subsequent request re-ran it — a request loop with the bar as the feedback path. A
+	 * consumer measured 3.985 calls to one endpoint in a second before it was traced here.
+	 */
+	describe('reads of its own counter', () => {
+		it('does not subscribe a caller\'s effect to the count', () => {
+			let ejecuciones = 0;
+
+			TestBed.runInInjectionContext(() => {
+				effect(() => {
+					ejecuciones++;
+
+					// The guard is the test's seatbelt, not part of the contract: with the
+					// tracked read in place this effect re-enters without end, and a spec
+					// that hangs says less than one that fails.
+					if (ejecuciones > 3) {
+						return;
+					}
+
+					service.start();
+				});
+			});
+			TestBed.tick();
+
+			expect(ejecuciones).toBe(1);
 		});
 	});
 

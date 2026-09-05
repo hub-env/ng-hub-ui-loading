@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { DestroyRef, Injectable, NgZone, PLATFORM_ID, Signal, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, NgZone, PLATFORM_ID, Signal, computed, inject, signal, untracked } from '@angular/core';
 import { HUB_LOADING_BAR_CONFIG } from '../loading-bar-config';
 
 /** The three timers the bar juggles; named so `clearTimer` reads at the call site. */
@@ -52,6 +52,16 @@ export class HubLoadingBarService {
 	private readonly platformId = inject(PLATFORM_ID);
 
 	/** Number of callers currently waiting on something. */
+	/**
+	 * How many callers are holding the bar up.
+	 *
+	 * Read through `untracked` everywhere it steers this service's own logic. A caller is
+	 * not necessarily outside a reactive context — Angular does not untrack interceptors,
+	 * so a request fired from inside an `effect()` runs `start()` inside that effect — and a
+	 * tracked read there subscribes the caller's effect to this counter. Every later request
+	 * then re-runs it, which is a request loop with the bar as the feedback path. Only
+	 * `isActive` reads it tracked, and that one is meant to: it exists to be watched.
+	 */
 	private readonly pending = signal(0);
 
 	/** Current fill, 0–100. */
@@ -92,7 +102,7 @@ export class HubLoadingBarService {
 	 * Registers one caller. The first one starts a cycle; the rest simply join the count.
 	 */
 	start(): void {
-		const wasIdle = this.pending() === 0;
+		const wasIdle = untracked(this.pending) === 0;
 		this.pending.update((count) => count + 1);
 
 		if (!wasIdle) {
@@ -133,7 +143,7 @@ export class HubLoadingBarService {
 	complete(): void {
 		this.pending.update((count) => Math.max(0, count - 1));
 
-		if (this.pending() === 0) {
+		if (untracked(this.pending) === 0) {
 			this.finish();
 		}
 	}
@@ -209,7 +219,7 @@ export class HubLoadingBarService {
 
 	/** Starts the trickle interval, unless it is disabled, already running or unneeded. */
 	private startTrickling(): void {
-		if (!this.config.trickle || this.timers.trickle !== null || this.pending() === 0) {
+		if (!this.config.trickle || this.timers.trickle !== null || untracked(this.pending) === 0) {
 			return;
 		}
 
