@@ -8,7 +8,8 @@ import {
 	computed,
 	createComponent,
 	inject,
-	signal
+	signal,
+	untracked
 } from '@angular/core';
 import { HubLoadingComponent } from '../components/loading/loading.component';
 import { HUB_LOADING_CONFIG } from '../loading-config';
@@ -48,7 +49,16 @@ export class HubLoadingService {
 	private readonly platformId = inject(PLATFORM_ID);
 	private readonly config = inject(HUB_LOADING_CONFIG);
 
-	/** Number of callers currently requesting the overlay. */
+	/**
+	 * Number of callers currently requesting the overlay.
+	 *
+	 * Read through `untracked` wherever it steers this service's own logic. A caller is not
+	 * necessarily outside a reactive context — `hide()` from inside an `effect()` is ordinary
+	 * code — and a tracked read there subscribes that effect to the counter, so anyone else's
+	 * `show()` re-runs it and retires a reference it never registered, taking the overlay down
+	 * while other callers are still waiting. Only `isLoading` reads it tracked, and that one is
+	 * meant to: it exists to be watched.
+	 */
 	private readonly pending = signal(0);
 
 	/** Live reference to the mounted overlay; `null` whenever nothing is showing. */
@@ -84,7 +94,7 @@ export class HubLoadingService {
 	hide(): void {
 		this.pending.update((count) => Math.max(0, count - 1));
 
-		if (this.pending() === 0) {
+		if (untracked(this.pending) === 0) {
 			this.unmount();
 		}
 	}

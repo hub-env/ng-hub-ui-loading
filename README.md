@@ -3,10 +3,10 @@
 [Español](./README.es.md) | **English**
 
 [![NPM Version](https://img.shields.io/npm/v/ng-hub-ui-loading.svg)](https://www.npmjs.com/package/ng-hub-ui-loading)
-[![Angular](https://img.shields.io/badge/Angular-22%2B-red.svg)](https://angular.dev)
+[![Angular](https://img.shields.io/badge/Angular-21%2B-red.svg)](https://angular.dev)
 [![License](https://img.shields.io/npm/l/ng-hub-ui-loading.svg)](LICENSE)
 
-Standalone loading block for Angular 22+ — an inline indicator, an overlay pinned over the container that is busy, or a fullscreen curtain, from a single `<hub-loading>` element. Five pure-CSS indicators, an optional logo or image instead of them, an optional message, and a counter-based `HubLoadingService` for the app-wide fullscreen case. Alongside it, `<hub-loading-bar>` — the thin page-progress strip that sits under the navbar, wired to the router and to `HttpClient`. Zero external dependencies; every colour and dimension is a `--hub-loading-*` CSS custom property.
+Standalone loading block for Angular 21+ — an inline indicator, an overlay pinned over the container that is busy, or a fullscreen curtain, from a single `<hub-loading>` element. Five pure-CSS indicators, an optional logo or image instead of them, an optional message, and a counter-based `HubLoadingService` for the app-wide fullscreen case. Alongside it, `<hub-loading-bar>` — the thin page-progress strip that sits under the navbar, wired to the router and to `HttpClient`. Zero external dependencies; every colour and dimension is a `--hub-loading-*` CSS custom property.
 
 ## Documentation and Live Examples
 
@@ -492,7 +492,7 @@ Injectable (`providedIn: 'root'`). Drives a single fullscreen overlay attached t
 | `hide` | `() => void` | Decrements the counter; destroys the overlay when it reaches zero. |
 | `hideAll` | `() => void` | Forces the counter to zero and destroys the overlay. |
 | `update` | `(options: HubLoadingOptions) => void` | Applies new options to the visible overlay. |
-| `isLoading` | `Signal<boolean>` | Whether an overlay is currently mounted. |
+| `isLoading` | `Signal<boolean>` | `true` while at least one caller still holds a reference — the counter, not the mount. During server rendering it is truthful even though no overlay is mounted. |
 
 ### `provideHubLoading(config?)`
 
@@ -724,6 +724,27 @@ The internal structure is stable and addressable, for the cases a token cannot r
 | `.hub-loading__image` | The `image` asset, plus `--spin` / `--pulse` when animated. |
 | `.hub-loading__message` | The message text. |
 
+The bar has its own set, and it is worth knowing because most of it is state you can style
+against rather than structure you have to reach into:
+
+| Class | Element |
+| --- | --- |
+| `.hub-loading-bar` | Host block. |
+| `.hub-loading-bar--inline` · `--overlay` · `--fixed` | Mode modifiers. |
+| `.hub-loading-bar--top` · `--bottom` | Placement modifiers; emitted only by the two positioned modes, so they can never reach an inline bar. |
+| `.hub-loading-bar--visible` | Present only while the bar is painted. The fill transition is scoped to it, so a rewind between cycles never animates backwards. |
+| `.hub-loading-bar--indeterminate` | The sweep is running instead of a fill. |
+| `.hub-loading-bar--glow` | The leading-edge glow is on — the shipped default, unless `[glow]="false"` or a re-based `provideHubLoadingBar()` turns it off. |
+| `.hub-loading-bar__indicator` | The fill itself; its `::after` paints the glow. |
+
+### Right-to-left
+
+Under `[dir='rtl']` the `indeterminate` sweep reverses, so it travels with the text instead
+of against it. Nothing to switch on: the stylesheet reads the direction from the bar itself
+or from any ancestor carrying the attribute, which is where an RTL application already sets
+it. The determinate fill needs no such rule — it is laid out with logical properties and
+mirrors on its own.
+
 ## ♿ Accessibility
 
 - The block is a **status region**: `role="status"`, `aria-live="polite"` and
@@ -778,7 +799,8 @@ The internal structure is stable and addressable, for the cases a token cannot r
 	"@angular/common": ">=21.0.0",
 	"@angular/core": ">=21.0.0",
 	"@angular/router": ">=21.0.0",
-	"ng-hub-ui-utils": ">=22.8.0"
+	"ng-hub-ui-utils": ">=22.8.0",
+	"rxjs": ">=7.5.0"
 }
 ```
 

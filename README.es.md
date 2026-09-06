@@ -3,10 +3,10 @@
 **Español** | [English](./README.md)
 
 [![NPM Version](https://img.shields.io/npm/v/ng-hub-ui-loading.svg)](https://www.npmjs.com/package/ng-hub-ui-loading)
-[![Angular](https://img.shields.io/badge/Angular-22%2B-red.svg)](https://angular.dev)
+[![Angular](https://img.shields.io/badge/Angular-21%2B-red.svg)](https://angular.dev)
 [![License](https://img.shields.io/npm/l/ng-hub-ui-loading.svg)](LICENSE)
 
-Bloque de carga standalone para Angular 22+ — un indicador en línea, una capa superpuesta sobre el contenedor que está ocupado, o una cortina a pantalla completa, todo desde un único elemento `<hub-loading>`. Cinco indicadores puramente CSS, la opción de sustituirlos por un logo o una imagen, un mensaje opcional y un `HubLoadingService` con contador de referencias para el caso global. Junto a él, `<hub-loading-bar>`: la franja fina de progreso de página que va bajo la barra de navegación, conectada al router y a `HttpClient`. Sin dependencias externas; cada color y cada dimensión es una propiedad CSS `--hub-loading-*`.
+Bloque de carga standalone para Angular 21+ — un indicador en línea, una capa superpuesta sobre el contenedor que está ocupado, o una cortina a pantalla completa, todo desde un único elemento `<hub-loading>`. Cinco indicadores puramente CSS, la opción de sustituirlos por un logo o una imagen, un mensaje opcional y un `HubLoadingService` con contador de referencias para el caso global. Junto a él, `<hub-loading-bar>`: la franja fina de progreso de página que va bajo la barra de navegación, conectada al router y a `HttpClient`. Sin dependencias externas; cada color y cada dimensión es una propiedad CSS `--hub-loading-*`.
 
 ## Documentación y ejemplos en vivo
 
@@ -495,7 +495,7 @@ Inyectable (`providedIn: 'root'`). Gobierna una única superposición a pantalla
 | `hide` | `() => void` | Decrementa el contador; destruye la superposición cuando llega a cero. |
 | `hideAll` | `() => void` | Fuerza el contador a cero y destruye la superposición. |
 | `update` | `(options: HubLoadingOptions) => void` | Aplica nuevas opciones a la superposición visible. |
-| `isLoading` | `Signal<boolean>` | Si hay una superposición montada en este momento. |
+| `isLoading` | `Signal<boolean>` | `true` mientras al menos una llamada mantenga su referencia — el contador, no el montaje. En renderizado en servidor sigue siendo veraz aunque no haya ninguna superposición montada. |
 
 ### `provideHubLoading(config?)`
 
@@ -731,6 +731,27 @@ La estructura interna es estable y direccionable, para los casos a los que un to
 | `.hub-loading__image` | El recurso de `image`, con `--spin` / `--pulse` cuando está animado. |
 | `.hub-loading__message` | El texto del mensaje. |
 
+La barra tiene su propio juego, y conviene conocerlo: casi todo lo que hay ahí es estado al
+que puedes engancharte desde CSS, no estructura en la que tengas que meterte:
+
+| Clase | Elemento |
+| --- | --- |
+| `.hub-loading-bar` | Bloque anfitrión. |
+| `.hub-loading-bar--inline` · `--overlay` · `--fixed` | Modificadores de modo. |
+| `.hub-loading-bar--top` · `--bottom` | Modificadores de colocación; solo los emiten los dos modos posicionados, así que nunca alcanzan a una barra en flujo. |
+| `.hub-loading-bar--visible` | Presente solo mientras la barra está pintada. La transición del relleno está acotada a él, de modo que el rebobinado entre ciclos no se anima hacia atrás. |
+| `.hub-loading-bar--indeterminate` | El recorrido está en marcha en lugar de un relleno. |
+| `.hub-loading-bar--glow` | El resplandor del borde de avance está activo — es el valor por defecto, salvo que `[glow]="false"` o un `provideHubLoadingBar()` reajustado lo apaguen. |
+| `.hub-loading-bar__indicator` | El relleno en sí; su `::after` pinta el resplandor. |
+
+### De derecha a izquierda
+
+Con `[dir='rtl']` el recorrido `indeterminate` se invierte, de forma que viaja con el texto
+y no contra él. No hay nada que activar: la hoja de estilos lee la dirección de la propia
+barra o de cualquier ancestro que lleve el atributo, que es donde una aplicación RTL ya la
+marca. El relleno determinado no necesita esa regla — se maqueta con propiedades lógicas y
+se refleja solo.
+
 ## ♿ Accesibilidad
 
 - El bloque es una **región de estado**: `role="status"`, `aria-live="polite"` y
@@ -788,7 +809,8 @@ La estructura interna es estable y direccionable, para los casos a los que un to
 	"@angular/common": ">=21.0.0",
 	"@angular/core": ">=21.0.0",
 	"@angular/router": ">=21.0.0",
-	"ng-hub-ui-utils": ">=22.8.0"
+	"ng-hub-ui-utils": ">=22.8.0",
+	"rxjs": ">=7.5.0"
 }
 ```
 

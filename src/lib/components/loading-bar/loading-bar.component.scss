@@ -31,7 +31,11 @@
 	--hub-loading-bar-sweep-direction: 1;
 }
 
-[dir='rtl'] .hub-loading-bar {
+// Both halves are needed. `dir` is an inherited attribute, so it is just as legitimate on
+// the bar itself as on an ancestor — and the host element is the one carrying
+// `.hub-loading-bar`, which a descendant combinator can never reach.
+[dir='rtl'] .hub-loading-bar,
+.hub-loading-bar[dir='rtl'] {
 	--hub-loading-bar-sweep-direction: -1;
 }
 

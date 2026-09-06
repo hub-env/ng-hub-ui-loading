@@ -208,7 +208,10 @@ export class HubLoadingBarService {
 		this.clearTimer('reveal');
 		this.clearTimer('trickle');
 
-		if (!this._visible()) {
+		// Untracked for the same reason as `pending`: `complete()` and `completeAll()` are
+		// public and reachable from an effect, and a tracked read here would wake that effect
+		// on every later cycle, completing a bar somebody else had just started.
+		if (!untracked(this._visible)) {
 			this._progress.set(0);
 			return;
 		}
@@ -234,7 +237,10 @@ export class HubLoadingBarService {
 
 	/** Adds one step, capped at `max` so the trickle can never claim to be finished. */
 	private advance(amount?: number): void {
-		const current = this._progress();
+		// Untracked for the same reason as `pending`: `inc()` is public, so this read can happen
+		// inside a caller's effect, and each step would then re-run it — a bar that advances
+		// itself for as long as the guard allows.
+		const current = untracked(this._progress);
 		const step = amount ?? this.config.trickleFn(current);
 
 		this._progress.set(Math.min(this.config.max, Math.max(0, current + step)));

@@ -1,5 +1,23 @@
 # Changelog
 
+## [22.1.1] - 2026-09-06
+
+### Added
+
+- Both READMEs now document the loading bar's own BEM classes, and a new *Right-to-left* section explains that the `indeterminate` sweep reverses under `[dir='rtl']` so it travels with the text. Both have worked since 22.1.0 with nothing in the documentation to find them by, which is the same as not having them.
+
+### Changed
+
+- `rxjs` is now declared as a peer dependency. `hubLoadingBarInterceptor` imports `finalize` from it on the published path, and without the declaration a strict installer — pnpm with hoisting turned off — has no reason to resolve rxjs for this package. Nothing changes under npm or yarn, where rxjs arrives hoisted as a peer of `@angular/core`.
+
+### Fixed
+
+- The Angular badge and the opening line of both READMEs say 21+, the range `package.json` has always declared. Claiming 22+ turned an application on Angular 21 away from a library that supports it.
+- `HubLoadingService.isLoading` is described as what it computes — the reference counter, not the mounted overlay. The README contradicted itself: its own SSR section already explained that on the server the counter runs while the mount is skipped.
+- `FUNCTIONALITIES.md` marks `hub-loading`'s `ariaLabel` as covered, which the Inline playground control has made true since the page shipped, and adds the bar's RTL row so the file stops omitting behaviour the stylesheet has.
+- Calling `HubLoadingService.hide()`, `HubLoadingBarService.complete()` or `HubLoadingBarService.inc()` from inside an `effect()` no longer subscribes that effect to the service's internal state. Each of those paths read a signal tracked to decide what to do next — the counter, whether the bar is on screen, the current fill — so the caller's effect woke up on state it does not own: anyone else's `show()` re-ran it and retired a reference it never registered, and `inc()` re-entered itself on every step. `HubLoadingBarService` already documented the hazard and guarded its counter; the same `untracked` read now covers the three places that were left out.
+- The `indeterminate` sweep reverses when `dir="rtl"` sits on the bar itself, not only on an ancestor. The rule was written as `[dir='rtl'] .hub-loading-bar`, a descendant combinator, and the host element is the one that carries the class — so `<hub-loading-bar dir="rtl">` kept sweeping left to right and the fragment left the track instead of crossing it.
+
 ## [22.1.0] - 2026-09-05
 
 ### Added

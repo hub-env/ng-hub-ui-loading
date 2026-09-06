@@ -27,7 +27,7 @@ The library ships two components: `hub-loading`, the activity indicator, and `hu
 | **Sizing & Colour** | Size steps (`sm` / `md` / `lg`) | ✅ |
 | | Accent colour (`color`) | ✅ |
 | **Accessibility** | `role="status"` / `aria-live` / `aria-busy` contract | ✅ |
-| | Custom accessible name (`ariaLabel`) | ❌ |
+| | Custom accessible name (`ariaLabel`) | ✅ |
 | | `prefers-reduced-motion` fallback | ❌ |
 
 ## Service (`HubLoadingService`)
@@ -81,6 +81,7 @@ The library ships two components: `hub-loading`, the activity indicator, and `hu
 | **Appearance** | Leading-edge glow (`glow`) | ✅ |
 | | Glow disabled (`[glow]="false"`) | ✅ |
 | | Accent colour (`color`) | ✅ |
+| | Indeterminate sweep reversed under `[dir='rtl']` | ✅ |
 | **Accessibility** | `role="progressbar"` with static bounds | ✅ |
 | | `aria-valuenow` published for a real value | ✅ |
 | | `aria-valuenow` withheld while the value is invented | ✅ |

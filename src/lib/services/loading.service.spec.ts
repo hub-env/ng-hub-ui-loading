@@ -1,3 +1,4 @@
+import { effect } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { provideHubLoading } from '../loading-config';
@@ -53,6 +54,49 @@ describe('HubLoadingService', () => {
 
 			expect(service.isLoading()).toBe(false);
 			expect(overlay()).toBeNull();
+		});
+	});
+
+	/**
+	 * A caller inside a reactive context must not be made to depend on the counter.
+	 *
+	 * `hide()` reads `pending` to decide whether to unmount, and a read inside an effect is a
+	 * subscription. Anyone else's `show()` would then re-run that effect, retiring a reference
+	 * it never registered and pulling the overlay out from under the callers still waiting.
+	 */
+	describe('reads of its own counter', () => {
+		it("does not subscribe a caller's effect to the count", () => {
+			let ejecuciones = 0;
+			service.show(); // an unrelated caller
+			service.show(); // the reference the effect balances
+
+			TestBed.runInInjectionContext(() => {
+				effect(() => {
+					ejecuciones++;
+
+					// The guard is the test's seatbelt, not part of the contract: it keeps a
+					// regression from hanging the suite instead of failing it.
+					if (ejecuciones > 3) {
+						return;
+					}
+
+					service.hide();
+				});
+			});
+			TestBed.tick();
+			expect(ejecuciones).toBe(1);
+
+			// A third caller arrives. With the tracked read the effect wakes up and hides
+			// again, so the count no longer matches the callers still waiting.
+			service.show();
+			TestBed.tick();
+
+			// The unrelated caller from the top balances itself; the third one is still waiting.
+			service.hide();
+
+			expect(ejecuciones).toBe(1);
+			expect(service.isLoading()).toBe(true);
+			expect(overlay()).not.toBeNull();
 		});
 	});
 

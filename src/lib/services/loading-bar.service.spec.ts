@@ -99,6 +99,59 @@ describe('HubLoadingBarService', () => {
 
 			expect(ejecuciones).toBe(1);
 		});
+
+		it("does not subscribe a caller's effect to the bar's visibility", () => {
+			let ejecuciones = 0;
+			service.start();
+
+			TestBed.runInInjectionContext(() => {
+				effect(() => {
+					ejecuciones++;
+
+					if (ejecuciones > 3) {
+						return;
+					}
+
+					// The last caller leaves, so `complete()` reaches `finish()`, which reads
+					// whether the bar is on screen.
+					service.complete();
+				});
+			});
+			TestBed.tick();
+			expect(ejecuciones).toBe(1);
+
+			// An unrelated caller opens a cycle. Revealing the bar must not wake the effect,
+			// which would complete a cycle it never started.
+			service.start();
+			vi.advanceTimersByTime(delay);
+			TestBed.tick();
+
+			expect(ejecuciones).toBe(1);
+			expect(service.isActive()).toBe(true);
+			expect(service.isVisible()).toBe(true);
+		});
+
+		it("does not subscribe a caller's effect to the progress", () => {
+			let ejecuciones = 0;
+
+			TestBed.runInInjectionContext(() => {
+				effect(() => {
+					ejecuciones++;
+
+					if (ejecuciones > 3) {
+						return;
+					}
+
+					// `inc()` reads the current fill to compute the next one; tracked, the step
+					// it writes re-enters the effect and the bar runs away on its own.
+					service.inc(10);
+				});
+			});
+			TestBed.tick();
+
+			expect(ejecuciones).toBe(1);
+			expect(service.progress()).toBe(10);
+		});
 	});
 
 	describe('reference counter', () => {
