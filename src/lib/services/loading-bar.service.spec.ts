@@ -78,7 +78,7 @@ describe('HubLoadingBarService', () => {
 	 * consumer measured 3.985 calls to one endpoint in a second before it was traced here.
 	 */
 	describe('reads of its own counter', () => {
-		it('does not subscribe a caller\'s effect to the count', () => {
+		it("does not subscribe a caller's effect to the count", () => {
 			let ejecuciones = 0;
 
 			TestBed.runInInjectionContext(() => {
