@@ -3,7 +3,11 @@
 // primitive next, a literal last. Tokens with no honest counterpart in the design
 // system (an indicator's diameter, a loop period, a blur radius) carry a literal
 // rather than borrowing a `sys` token that means something else.
-:where(.hub-loading) {
+//
+// On `:where(:host)`, not on a global `.hub-loading`: a custom property inherits, so
+// declaring it on the host reaches every element inside, and the zero specificity keeps
+// `hub-loading-theme()` — and any consumer rule — ahead of these defaults.
+:where(:host) {
 	--hub-loading-accent: var(--hub-sys-color-primary, #0d6efd);
 	--hub-loading-size: 2.5rem;
 	--hub-loading-thickness: calc(var(--hub-ref-border-width, 1px) * 3);
@@ -20,7 +24,7 @@
 }
 
 // ── Base layout ───────────────────────────────────────────────────────────
-.hub-loading {
+:host {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -33,12 +37,13 @@
 // ── Modes ─────────────────────────────────────────────────────────────────
 // `overlay` covers the nearest positioned ancestor — the consumer owns that
 // containing block. `fullscreen` covers the viewport and is what the service mounts.
-.hub-loading--overlay {
+// Every modifier rides on the host, so they are matched through `:host()`.
+:host(.hub-loading--overlay) {
 	position: absolute;
 	inset: 0;
 }
 
-.hub-loading--fullscreen {
+:host(.hub-loading--fullscreen) {
 	position: fixed;
 	inset: 0;
 	z-index: var(--hub-loading-z-index);
@@ -47,20 +52,20 @@
 // ── Backdrop ──────────────────────────────────────────────────────────────
 // Only meaningful where the indicator actually covers something; the component
 // never sets this class in `inline` mode.
-.hub-loading--backdrop {
+:host(.hub-loading--backdrop) {
 	background: var(--hub-loading-backdrop-bg);
 	-webkit-backdrop-filter: blur(var(--hub-loading-backdrop-blur));
 	backdrop-filter: blur(var(--hub-loading-backdrop-blur));
 }
 
 // ── Size steps (retune the tokens; never hard-code a dimension) ───────────
-.hub-loading--sm {
+:host(.hub-loading--sm) {
 	--hub-loading-size: 1.5rem;
 	--hub-loading-thickness: calc(var(--hub-ref-border-width, 1px) * 2);
 	--hub-loading-font-size: var(--hub-ref-font-size-xs, 0.75rem);
 }
 
-.hub-loading--lg {
+:host(.hub-loading--lg) {
 	--hub-loading-size: 4rem;
 	--hub-loading-thickness: calc(var(--hub-ref-border-width, 1px) * 4);
 	--hub-loading-font-size: var(--hub-ref-font-size-base, 1rem);
@@ -191,7 +196,7 @@
 // breathing rhythm, and every rotation or scale is swapped for a plain fade so
 // nothing spins or jumps.
 @media (prefers-reduced-motion: reduce) {
-	.hub-loading {
+	:host {
 		--hub-loading-speed: 2.4s;
 	}
 

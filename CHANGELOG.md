@@ -1,5 +1,33 @@
 # Changelog
 
+## [22.2.0] - 2026-09-08
+
+### Changed
+
+- **`<hub-loading>` and `<hub-loading-bar>` keep their stylesheets to themselves.** Both shipped with
+  `ViewEncapsulation.None`, and the reason recorded for it no longer held. Two things were claimed:
+  that a global stylesheet has to be able to retheme them, and that the overlay
+  `HubLoadingService` mounts on `document.body` would otherwise go unpainted. The first is answered
+  by the tokens, not by the encapsulation mode — they are declared on the host at zero specificity
+  (`:where(:host)`), a custom property inherits down to every element inside, and a rule you write
+  against `.hub-loading` still reaches the host from your own sheet, because the class is on the
+  host element. The second was simply not true: the service mounts a real `HubLoadingComponent`
+  through `createComponent()`, so the overlay carries the component's own marker attribute and its
+  stylesheet with it. `BREAKING_CHANGES.md` records what does change.
+- **The bar's RTL rule is written as `:host-context([dir='rtl'])`.** It was a hand-written pair —
+  `[dir='rtl'] .hub-loading-bar` for the attribute on an ancestor, `.hub-loading-bar[dir='rtl']` for
+  the attribute on the bar itself — because `dir` is inherited and both spellings are legitimate.
+  `:host-context()` is exactly that pair, and under emulated encapsulation Angular now compiles it,
+  which it never did while the component was unencapsulated. Same behaviour, one selector.
+
+### Added
+
+- **`ng-hub-ui-ds` is declared as an optional peer dependency** (`>=22.0.0`). Both stylesheets have
+  always resolved their defaults through the `--hub-sys-*` / `--hub-ref-*` ladder, and nothing in
+  the manifest said so — so a consumer reading the package on npm could not tell that installing the
+  token package is what hands the indicator and the bar the family palette and its dark mode. It
+  stays optional: every token carries a literal fallback and the library renders without it.
+
 ## [22.1.1] - 2026-09-06
 
 ### Added

@@ -618,15 +618,18 @@ Also exported: `HubLoadingOptions`, `HubLoadingConfig`, `HUB_LOADING_CONFIG` and
 
 ## 🎨 Styling / CSS Variables
 
-The component declares its token defaults on `:where(.hub-loading)` — zero specificity, so
-any consumer rule wins — and each one climbs the family's ladder: the semantic `--hub-sys-*`
+The component declares its token defaults on its own host element at zero specificity
+(`:where(:host)`), so any consumer rule wins — and each one climbs the family's ladder: the semantic `--hub-sys-*`
 layer first, the `--hub-ref-*` primitive next, a literal last. That is why the block already
 matches your theme, and its dark mode, before you override anything. Values with no honest
 counterpart in the design system (an indicator's diameter, a loop period, a blur radius)
 carry a literal rather than borrowing a `sys` token that means something else.
 
-Styles are deliberately unencapsulated, so a global stylesheet can retheme the indicator —
-and so the service-mounted overlay, created outside any component's style scope, is painted.
+Styles are encapsulated, and rethemeing from a global stylesheet is unaffected by that: the
+`hub-loading` class sits on the host element, so a rule you write against `.hub-loading` reaches
+it exactly as before, and a custom property set there inherits down to every element inside.
+The overlay `HubLoadingService` mounts on `document.body` is a real component instance created
+through `createComponent()`, so it carries this stylesheet with it.
 
 | Variable | Default | Description |
 | --- | --- | --- |
@@ -677,7 +680,7 @@ Available parameters: `$accent`, `$size`, `$thickness`, `$speed`, `$gap`, `$text
 
 ### The loading bar's variables
 
-Declared on `:where(.hub-loading-bar)`, same zero-specificity contract. The two durations
+Declared on the bar's own host element (`:where(:host)`), same zero-specificity contract. The two durations
 are literals rather than `--hub-sys-transition-*`: the fill has to arrive roughly as the
 next trickle tick lands, so it is coupled to `trickleSpeed`, and borrowing the application's
 transition scale would let a slow theme leave the bar a tick behind the number it is drawing.

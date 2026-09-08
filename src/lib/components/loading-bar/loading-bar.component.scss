@@ -5,7 +5,11 @@
 // `trickleSpeed` — not to the application's UI transition scale — and borrowing
 // `--hub-sys-transition-duration-base` would let a slow theme leave the bar lagging a
 // tick behind the number it is drawing.
-:where(.hub-loading-bar) {
+//
+// On `:where(:host)`, not on a global `.hub-loading-bar`: a custom property inherits, so
+// the host reaches the indicator inside, and the zero specificity keeps
+// `hub-loading-bar-theme()` — and any consumer rule — ahead of these defaults.
+:where(:host) {
 	--hub-loading-bar-accent: var(--hub-sys-color-primary, #0d6efd);
 	--hub-loading-bar-height: 3px;
 	// Transparent by default: a page bar is painted over the chrome it hangs from, and a
@@ -31,18 +35,18 @@
 	--hub-loading-bar-sweep-direction: 1;
 }
 
-// Both halves are needed. `dir` is an inherited attribute, so it is just as legitimate on
-// the bar itself as on an ancestor — and the host element is the one carrying
-// `.hub-loading-bar`, which a descendant combinator can never reach.
-[dir='rtl'] .hub-loading-bar,
-.hub-loading-bar[dir='rtl'] {
+// `dir` is an inherited attribute, so it is just as legitimate on the bar itself as on an
+// ancestor. `:host-context()` covers both: it matches when the host or any of its
+// ancestors carries the attribute, which is exactly the pair of selectors this used to
+// spell out by hand.
+:host-context([dir='rtl']) {
 	--hub-loading-bar-sweep-direction: -1;
 }
 
 // ── The strip ─────────────────────────────────────────────────────────────
 // Hidden rather than absent: the bar has to be in the DOM to fade out, and in `inline`
 // mode it also reserves its own row so the page does not jump every time it appears.
-.hub-loading-bar {
+:host {
 	display: block;
 	position: relative;
 	overflow: hidden;
@@ -56,7 +60,8 @@
 	transition: opacity var(--hub-loading-bar-fade) ease;
 }
 
-.hub-loading-bar--visible {
+// Every modifier rides on the host, so they are matched through `:host()`.
+:host(.hub-loading-bar--visible) {
 	opacity: 1;
 }
 
@@ -64,27 +69,27 @@
 // `overlay` attaches to the nearest positioned ancestor — the consumer owns that
 // containing block, exactly as with `<hub-loading mode="overlay">`. `fixed` attaches to
 // the viewport, which is what a bar under a fixed navbar needs.
-.hub-loading-bar--overlay,
-.hub-loading-bar--fixed {
+:host(.hub-loading-bar--overlay),
+:host(.hub-loading-bar--fixed) {
 	inset-inline: 0;
 	z-index: var(--hub-loading-bar-z-index);
 }
 
-.hub-loading-bar--overlay {
+:host(.hub-loading-bar--overlay) {
 	position: absolute;
 }
 
-.hub-loading-bar--fixed {
+:host(.hub-loading-bar--fixed) {
 	position: fixed;
 }
 
 // The placement modifier is only emitted by the positioned modes, so these rules cannot
 // reach an inline bar.
-.hub-loading-bar--top {
+:host(.hub-loading-bar--top) {
 	inset-block-start: var(--hub-loading-bar-offset);
 }
 
-.hub-loading-bar--bottom {
+:host(.hub-loading-bar--bottom) {
 	inset-block-end: var(--hub-loading-bar-offset);
 }
 
@@ -102,7 +107,7 @@
 // to the starting value, and transitioning that would show the progress running
 // backwards — so the transition is scoped to the visible state, where every change is a
 // genuine advance.
-.hub-loading-bar--visible .hub-loading-bar__indicator {
+:host(.hub-loading-bar--visible) .hub-loading-bar__indicator {
 	transition: inline-size var(--hub-loading-bar-speed) var(--hub-loading-bar-easing);
 }
 
@@ -110,7 +115,7 @@
 // The soft tip trailing the leading edge — the detail that reads as movement even while
 // the fill is between ticks. Only a box-shadow, so it is symmetrical and needs no
 // mirroring under RTL.
-.hub-loading-bar--glow .hub-loading-bar__indicator::after {
+:host(.hub-loading-bar--glow) .hub-loading-bar__indicator::after {
 	content: '';
 	position: absolute;
 	inset-block: 0;
@@ -125,8 +130,8 @@
 // The honest mode when there is no percentage worth inventing: a fragment sweeps across
 // instead of filling. The width is fixed and the transition dropped, because the
 // animation owns the element's position and a transition would fight it.
-.hub-loading-bar--indeterminate .hub-loading-bar__indicator,
-.hub-loading-bar--visible.hub-loading-bar--indeterminate .hub-loading-bar__indicator {
+:host(.hub-loading-bar--indeterminate) .hub-loading-bar__indicator,
+:host(.hub-loading-bar--visible.hub-loading-bar--indeterminate) .hub-loading-bar__indicator {
 	inline-size: 33%;
 	transition: none;
 	animation: hub-loading-bar-sweep var(--hub-loading-bar-indeterminate-speed) ease-in-out infinite;
@@ -137,7 +142,7 @@
 // reported, and freezing it would leave a bar that says nothing. The looping sweep is the
 // part that can be uncomfortable, so it is slowed to a calm pace.
 @media (prefers-reduced-motion: reduce) {
-	.hub-loading-bar {
+	:host {
 		--hub-loading-bar-indeterminate-speed: 3.2s;
 	}
 }

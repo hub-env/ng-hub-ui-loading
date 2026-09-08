@@ -622,17 +622,20 @@ También se exportan: `HubLoadingOptions`, `HubLoadingConfig`, `HUB_LOADING_CONF
 
 ## 🎨 Estilos / Variables CSS
 
-El componente declara los valores por defecto de sus tokens en `:where(.hub-loading)` —
-especificidad cero, así que cualquier regla del consumidor gana — y cada uno sube por la escalera
+El componente declara los valores por defecto de sus tokens en su propio elemento anfitrión, con
+especificidad cero (`:where(:host)`), así que cualquier regla del consumidor gana — y cada uno sube por la escalera
 de la familia: primero la capa semántica `--hub-sys-*`, después la primitiva `--hub-ref-*` y por
 último un literal. Por eso el bloque ya encaja con tu tema, y con su modo oscuro, antes de
 sobrescribir nada. Los valores sin equivalente honesto en el design system (el diámetro de un
 indicador, el periodo de un ciclo, un radio de desenfoque) llevan un literal en lugar de tomar
 prestado un token `sys` que significa otra cosa.
 
-Los estilos van deliberadamente sin encapsular, para que una hoja global pueda re-vestir el
-indicador — y para que la superposición montada por el servicio, creada fuera del ámbito de
-estilos de cualquier componente, se pinte.
+Los estilos van encapsulados, y eso no quita nada a poder re-vestir el indicador desde una hoja
+global: la clase `hub-loading` está en el elemento anfitrión, así que una regla escrita contra
+`.hub-loading` lo alcanza igual que antes, y una propiedad personalizada declarada ahí se hereda
+hasta el último elemento de dentro. La superposición que `HubLoadingService` monta en
+`document.body` es una instancia real del componente creada con `createComponent()`, así que se
+lleva esta hoja consigo.
 
 | Variable | Por defecto | Descripción |
 | --- | --- | --- |
@@ -683,7 +686,7 @@ Parámetros disponibles: `$accent`, `$size`, `$thickness`, `$speed`, `$gap`, `$t
 
 ### Las variables de la barra de carga
 
-Declaradas en `:where(.hub-loading-bar)`, con el mismo contrato de especificidad cero. Las
+Declaradas en el elemento anfitrión de la barra (`:where(:host)`), con el mismo contrato de especificidad cero. Las
 dos duraciones son literales en lugar de `--hub-sys-transition-*`: el relleno tiene que
 llegar más o menos cuando cae el siguiente paso del avance, así que está acoplado a
 `trickleSpeed`, y tomar prestada la escala de transiciones de la aplicación dejaría la barra

@@ -1,12 +1,4 @@
-import {
-	booleanAttribute,
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	inject,
-	input,
-	ViewEncapsulation
-} from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { resolveHubAccent } from 'ng-hub-ui-utils';
 import { HUB_LOADING_CONFIG } from '../../loading-config';
 import { HubLoadingImageAnimation, HubLoadingMode, HubLoadingSize, HubLoadingVariant } from '../../models/loading.types';
@@ -18,10 +10,10 @@ import { HubLoadingImageAnimation, HubLoadingMode, HubLoadingSize, HubLoadingVar
  * re-bases an entire application (brand image, variant, translated label) without
  * touching a single template, while a per-instance binding still wins locally.
  *
- * Styles are unencapsulated on purpose: the host carries the `hub-loading` class and
- * the token block, so consumers can retheme the indicator from a global stylesheet —
- * and so the service-mounted overlay, created outside any component's style scope,
- * is still painted.
+ * Every `--hub-loading-*` token is declared on the host at zero specificity, so a
+ * consumer retheming the indicator from a global stylesheet wins without having to
+ * out-specify anything. The overlay `HubLoadingService` mounts on `document.body` is a
+ * regular instance of this component, so it carries the same stylesheet with it.
  *
  * @example
  * ```html
@@ -36,7 +28,6 @@ import { HubLoadingImageAnimation, HubLoadingMode, HubLoadingSize, HubLoadingVar
 	selector: 'hub-loading',
 	standalone: true,
 	changeDetection: ChangeDetectionStrategy.OnPush,
-	encapsulation: ViewEncapsulation.None,
 	templateUrl: './loading.component.html',
 	styleUrl: './loading.component.scss',
 	host: {

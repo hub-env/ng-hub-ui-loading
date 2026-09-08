@@ -1,12 +1,4 @@
-import {
-	booleanAttribute,
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	inject,
-	input,
-	ViewEncapsulation
-} from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { resolveHubAccent } from 'ng-hub-ui-utils';
 import { HUB_LOADING_BAR_CONFIG } from '../../loading-bar-config';
 import { HubLoadingBarMode, HubLoadingBarPlacement } from '../../models/loading-bar.types';
@@ -32,8 +24,8 @@ import { HubLoadingBarService } from '../../services/loading-bar.service';
  * progressbar. Announcing a made-up "43%" would be worse than announcing nothing. The
  * value is published only when a caller has bound a real one.
  *
- * Styles are unencapsulated, like the rest of the library, so a consumer can retheme the
- * bar from a global stylesheet.
+ * Every `--hub-loading-bar-*` token is declared on the host at zero specificity, so a
+ * consumer retheming the bar from a global stylesheet wins without out-specifying anything.
  *
  * @example
  * ```html
@@ -51,7 +43,6 @@ import { HubLoadingBarService } from '../../services/loading-bar.service';
 	selector: 'hub-loading-bar',
 	standalone: true,
 	changeDetection: ChangeDetectionStrategy.OnPush,
-	encapsulation: ViewEncapsulation.None,
 	templateUrl: './loading-bar.component.html',
 	styleUrl: './loading-bar.component.scss',
 	host: {
