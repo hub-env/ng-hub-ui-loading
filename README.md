@@ -15,6 +15,7 @@ This package is part of [Hub UI](https://hubui.dev/en/), a collection of Angular
 - Docs: https://hubui.dev/en/loading/overview/
 - Live examples: https://hubui.dev/en/loading/examples/
 - Hub UI: https://hubui.dev/en/
+- Hub UI on GitHub (issues, roadmap and contributing): https://github.com/hub-env/hub-ui
 
 ## 🧩 Library Family `ng-hub-ui`
 
@@ -823,7 +824,7 @@ submitting a pull request, and make sure to document every library change in `CH
 
 ## ☕ Support
 
-- **Issues**: [GitHub Issues](https://github.com/carlos-morcillo/ng-hub-ui/issues)
+- **Issues**: [GitHub Issues](https://github.com/hub-env/hub-ui/issues)
 - **Author**: [Carlos Morcillo](https://www.carlosmorcillo.com)
 
 ## 📄 License

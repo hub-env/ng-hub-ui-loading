@@ -15,6 +15,7 @@ Este paquete es parte de [Hub UI](https://hubui.dev/en/), una colección de bibl
 - Docs: https://hubui.dev/en/loading/overview/
 - Ejemplos en vivo: https://hubui.dev/en/loading/examples/
 - Hub UI: https://hubui.dev/en/
+- Hub UI en GitHub (incidencias, roadmap y cómo contribuir): https://github.com/hub-env/hub-ui
 
 ## 🧩 Familia de bibliotecas `ng-hub-ui`
 
@@ -832,7 +833,7 @@ enviar un pull request, y asegúrate de documentar cada cambio de la biblioteca 
 
 ## ☕ Soporte
 
-- **Issues**: [GitHub Issues](https://github.com/carlos-morcillo/ng-hub-ui/issues)
+- **Issues**: [GitHub Issues](https://github.com/hub-env/hub-ui/issues)
 - **Autor**: [Carlos Morcillo](https://www.carlosmorcillo.com)
 
 ## 📄 Licencia
