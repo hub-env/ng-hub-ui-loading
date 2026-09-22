@@ -3,7 +3,7 @@
 	"version": "22.2.1",
 	"license": "MIT",
 	"description": "Customizable loading indicators for Angular: inline block, container overlay or fullscreen, plus a page-level progress bar for the navbar, with CSS-only variants, branding image and programmatic services. Part of the ng-hub-ui family.",
-	"author": "Carlos Morcillo <carlos.morcillo@me.com> (https://www.carlosmorcillo.com)",
+	"author": "Carlos Morcillo Fernández <carlos.morcillo@me.com> (https://www.carlosmorcillo.com)",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/hub-env/ng-hub-ui-loading.git"
