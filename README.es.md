@@ -810,9 +810,9 @@ se refleja solo.
 
 ```json
 {
-	"@angular/common": ">=17.1.0",
-	"@angular/core": ">=17.1.0",
-	"@angular/router": ">=17.1.0",
+	"@angular/common": ">=17.3.0",
+	"@angular/core": ">=17.3.0",
+	"@angular/router": ">=17.3.0",
 	"ng-hub-ui-utils": ">=22.8.0",
 	"rxjs": ">=7.5.0"
 }

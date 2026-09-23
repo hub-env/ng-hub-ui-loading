@@ -2,6 +2,18 @@
 
 This file documents breaking changes and migration steps for `ng-hub-ui-loading`.
 
+## [22.3.0] - 2026-09-23
+
+### Angular below 17.3.0 is no longer supported
+
+- **Change**: the `@angular/*` peer ranges move from `>=17.1.0` to `>=17.3.0`.
+
+- **Why**: Its published `.d.ts` names `InputSignalWithTransform` or `OutputEmitterRef`, which Angular did not ship until 17.3.
+
+- **Impact — an application below 17.3.0 gets a peer warning where it used to get a build error.**
+  Nothing that worked stops working: those versions never compiled against this package. Upgrade
+  Angular to 17.3.0 or stay on the previous release.
+
 ## [22.2.0]
 
 ### The stylesheets no longer reach outside their components
