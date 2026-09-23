@@ -800,9 +800,9 @@ mirrors on its own.
 
 ```json
 {
-	"@angular/common": ">=21.0.0",
-	"@angular/core": ">=21.0.0",
-	"@angular/router": ">=21.0.0",
+	"@angular/common": ">=17.1.0",
+	"@angular/core": ">=17.1.0",
+	"@angular/router": ">=17.1.0",
 	"ng-hub-ui-utils": ">=22.8.0",
 	"rxjs": ">=7.5.0"
 }
