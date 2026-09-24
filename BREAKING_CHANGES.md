@@ -2,6 +2,38 @@
 
 This file documents breaking changes and migration steps for `ng-hub-ui-loading`.
 
+## [22.4.0] - 2026-09-23
+
+### A `fullscreen` indicator is moved to `<body>`
+
+- **Change**: `<hub-loading mode="fullscreen">` re-parents its host element to `document.body` once
+  it renders. The new `appendTo` input names the target — `'body'` by default, `null` to keep the
+  old placement, any selector to send it elsewhere. `inline` and `overlay` are unaffected.
+
+- **Why**: `position: fixed` measures from the viewport only while no ancestor applies layout
+  containment, a transform or a filter, and paints above the page only while no ancestor opens a
+  stacking context. Neither is something a page can promise, and both are broken by ordinary
+  layout: a card with a `transform`, a shell that isolates its stacking context. Declared inside
+  one, the indicator covered that box rather than the window, and `--hub-loading-z-index` was
+  clamped to whatever level the ancestor sat at. It is the same reason `HubLoadingService` has
+  always mounted its overlay on `document.body`, and the same reason `hub-select` appends its panel
+  there; the declarative form was the one place in the family still trusting its ancestors.
+
+- **Impact — the TypeScript surface is untouched and the DOM position changes.** The component
+  instance is the same object, a `viewChild` still finds it, inputs and content projection work as
+  before. What moves with the node:
+
+    - A rule written against an ancestor — `.wizard hub-loading { … }` — stops matching.
+    - A `--hub-loading-*` or `--hub-sys-*` token declared on an ancestor rather than on `:root`
+      stops being inherited, so a locally rethemed subtree loses its theme on the fullscreen
+      indicator only.
+    - A test asserting the element is under the fixture root fails; query the document instead.
+
+- **Migration**: theme through `:root` or through the `color` / token inputs, which is the
+  documented route anyway. To keep the old placement, bind `[appendTo]="null"` — and then give the
+  indicator an ancestor chain that declares no containment, transform, filter or stacking context,
+  because that is what it was relying on.
+
 ## [22.3.0] - 2026-09-23
 
 ### Angular below 17.3.0 is no longer supported

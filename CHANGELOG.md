@@ -1,5 +1,33 @@
 # Changelog
 
+## [22.4.0] - 2026-09-23
+
+### Fixed
+
+- **A `mode="fullscreen"` indicator covers the window from wherever it is written.** `position:
+fixed` measures from the viewport only while no ancestor applies layout containment, a transform
+  or a filter, and paints over the page only while no ancestor opens a stacking context. A shell
+  breaks both routinely — `<hub-side-panel-container>` opens a stacking context on purpose, and any
+  card with a `transform` moves the containing block — so an indicator declared inside one covered
+  its own corner of the page at `z-index: 1055` and nothing else. Applications were shipping a
+  directive of their own to move the node to `<body>` on the screens where it showed.
+
+### Added
+
+- **`appendTo` on `<hub-loading>`.** The CSS selector of the element a `fullscreen` indicator is
+  re-parented to, `'body'` by default; `null` leaves it where the template declares it, and a
+  selector that matches nothing does the same rather than guessing another parent. `inline` and
+  `overlay` are never moved. Switching away from `fullscreen` puts the indicator back between the
+  siblings it came from, and destroying the view takes it off the page.
+
+### Changed
+
+- **BREAKING — a fullscreen indicator no longer hangs from the block that declares it.** The
+  component instance, its inputs and its outputs are untouched; the host element moves. A stylesheet
+  that reached it through an ancestor selector, or a token set on an ancestor rather than on `:root`,
+  stops reaching it, and a test that looks for it under the fixture root will not find it. See
+  `BREAKING_CHANGES.md`.
+
 ## [22.3.0] - 2026-09-23
 
 ### Changed

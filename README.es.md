@@ -76,13 +76,13 @@ renderizarse en el flujo, sobre su propio contenedor o sobre todo el viewport.
 
 ### Cuándo usar cada biblioteca
 
-| Paquete | Úsalo cuando |
-| --- | --- |
-| **`ng-hub-ui-loading`** | No puedes decir cuánto falta y la forma del resultado todavía no importa. Un indicador de actividad — en su sitio, sobre el contenedor ocupado o sobre toda la aplicación. |
-| [`ng-hub-ui-skeleton`](https://www.npmjs.com/package/ng-hub-ui-skeleton) | Ya conoces la forma de lo que va a llegar y quieres que el layout reserve su sitio — placeholders estructurales con shimmer en lugar de un spinner. |
-| [`ng-hub-ui-metrics`](https://www.npmjs.com/package/ng-hub-ui-metrics) | Conoces la cifra de progreso — una barra, un medidor o un anillo determinados que informan de un valor. |
+| Paquete                                                                  | Úsalo cuando                                                                                                                                                               |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`ng-hub-ui-loading`**                                                  | No puedes decir cuánto falta y la forma del resultado todavía no importa. Un indicador de actividad — en su sitio, sobre el contenedor ocupado o sobre toda la aplicación. |
+| [`ng-hub-ui-skeleton`](https://www.npmjs.com/package/ng-hub-ui-skeleton) | Ya conoces la forma de lo que va a llegar y quieres que el layout reserve su sitio — placeholders estructurales con shimmer en lugar de un spinner.                        |
+| [`ng-hub-ui-metrics`](https://www.npmjs.com/package/ng-hub-ui-metrics)   | Conoces la cifra de progreso — una barra, un medidor o un anillo determinados que informan de un valor.                                                                    |
 
-> **`<hub-loading-bar>` frente a `<hub-progress>`.** Se parecen y responden a preguntas distintas. `hub-progress`, en `ng-hub-ui-metrics`, *muestra un valor que ya conoces*: es un componente de datos y su número es cierto. `hub-loading-bar` avisa de que algo está pasando cuando nadie sabe cuánto tardará: se inventa el número y no deja que llegue nunca al final. Usa el de metrics para una subida que informa de bytes; usa este para la franja bajo la barra de navegación.
+> **`<hub-loading-bar>` frente a `<hub-progress>`.** Se parecen y responden a preguntas distintas. `hub-progress`, en `ng-hub-ui-metrics`, _muestra un valor que ya conoces_: es un componente de datos y su número es cierto. `hub-loading-bar` avisa de que algo está pasando cuando nadie sabe cuánto tardará: se inventa el número y no deja que llegue nunca al final. Usa el de metrics para una subida que informa de bytes; usa este para la franja bajo la barra de navegación.
 
 Las tres se combinan: un skeleton para la lista que está llegando, un `<hub-loading mode="overlay">`
 sobre el panel que se refresca y un `<hub-progress>` para la subida que informa de bytes.
@@ -94,7 +94,7 @@ sobre el panel que se refresca y un `<hub-progress>` para la subida que informa 
 - **Soporte de imagen / logo** — sustituye el indicador por tu propio recurso de marca y anímalo con `spin` o `pulse`.
 - **Mensaje y contenido proyectado opcionales** — un texto bajo el indicador más un slot `<ng-content>` para lo que haga falta.
 - **Superposiciones programáticas** — `HubLoadingService` monta un `<hub-loading>` a pantalla completa bajo demanda, con `show()` / `hide()` contados por referencia para que dos tareas concurrentes no se desmonten la superposición mutuamente.
-- **Valores por defecto para toda la aplicación** — `provideHubLoading()` redefine el valor por defecto de cada input, para el servicio *y* para cada `<hub-loading>` escrito en una plantilla, sin tocar un solo archivo de marcado.
+- **Valores por defecto para toda la aplicación** — `provideHubLoading()` redefine el valor por defecto de cada input, para el servicio _y_ para cada `<hub-loading>` escrito en una plantilla, sin tocar un solo archivo de marcado.
 - **Cualquier color de acento** — `color` acepta un nombre semántico del design system, un valor hex, `oklch()` o una referencia `var(...)`, resuelto con `resolveHubAccent()` de `ng-hub-ui-utils`.
 - **Tematización por variables CSS** — cada color, dimensión y velocidad es una propiedad `--hub-loading-*`, con un mixin Sass `hub-loading-theme()` para re-vestir el bloque en una sola llamada.
 - **Accesible por defecto** — `role="status"`, `aria-live="polite"` y `aria-busy="true"`, con un `ariaLabel` configurable y un tratamiento de `prefers-reduced-motion` que calma el movimiento en lugar de congelarlo.
@@ -171,7 +171,7 @@ por debajo mientras se ejecuta el refresco.
 	<article>…contenido ya renderizado…</article>
 
 	@if (refreshing()) {
-		<hub-loading mode="overlay" variant="ring" message="Actualizando…" />
+	<hub-loading mode="overlay" variant="ring" message="Actualizando…" />
 	}
 </section>
 ```
@@ -183,9 +183,28 @@ sea el dueño del estado, o deja que [`HubLoadingService`](#-api-programática) 
 
 ```html
 @if (booting()) {
-	<hub-loading mode="fullscreen" variant="pulse" message="Iniciando…" />
+<hub-loading mode="fullscreen" variant="pulse" message="Iniciando…" />
 }
 ```
+
+**Para llegar ahí se mueve a `<body>`.** `position: fixed` solo mide desde el viewport mientras
+ningún ancestro aplique contención de layout, una transformación o un filtro, y solo pinta por
+encima de la página mientras ningún ancestro abra un contexto de apilado — y eso una página no
+lo puede garantizar. Escrito dentro de una tarjeta con `transform`, o dentro de un shell que
+aísla su contexto de apilado, el indicador taparía esa caja en lugar de la ventana. Así que sale
+del subárbol, igual que ya hacen `HubLoadingService` y `hub-select`.
+
+`appendTo` indica el destino: por defecto `'body'`, admite cualquier selector CSS y admite `null`
+para dejar el indicador donde lo pone la plantilla. Un selector que no encuentra nada también lo
+deja en su sitio. `inline` y `overlay` no se mueven nunca.
+
+```html
+<hub-loading mode="fullscreen" appendTo="#overlay-root" /> <hub-loading mode="fullscreen" [appendTo]="null" />
+```
+
+> Se mueve el elemento, no el componente: un `viewChild` lo sigue encontrando, y los inputs y el
+> contenido proyectado funcionan igual. Lo que deja de alcanzarlo es una regla de estilos escrita
+> contra un ancestro, y un token `--hub-*` declarado en un ancestro en vez de en `:root`.
 
 ### Backdrop
 
@@ -200,13 +219,13 @@ sea el dueño del estado, o deja que [`HubLoadingService`](#-api-programática) 
 
 Cinco indicadores, todos dibujados con CSS. Se eligen con el input `variant`.
 
-| Variante | Forma |
-| --- | --- |
-| `spinner` | Arco que gira (la opción por defecto). |
-| `dots` | Tres puntos que laten en secuencia. |
-| `bars` | Barras que suben y bajan. |
-| `pulse` | Un único disco que se expande y se desvanece. |
-| `ring` | Un anillo completo con un destello que lo recorre. |
+| Variante  | Forma                                              |
+| --------- | -------------------------------------------------- |
+| `spinner` | Arco que gira (la opción por defecto).             |
+| `dots`    | Tres puntos que laten en secuencia.                |
+| `bars`    | Barras que suben y bajan.                          |
+| `pulse`   | Un único disco que se expande y se desvanece.      |
+| `ring`    | Un anillo completo con un destello que lo recorre. |
 
 ```html
 <hub-loading variant="dots" />
@@ -239,11 +258,11 @@ es el logo del producto en la pantalla de arranque. `imageAnimation` le da movim
 <hub-loading mode="fullscreen" image="/assets/logo.svg" imageAnimation="pulse" message="Preparando tu espacio…" />
 ```
 
-| `imageAnimation` | Efecto |
-| --- | --- |
-| `none` | Imagen estática (por defecto). |
-| `spin` | Rotación continua. |
-| `pulse` | Latido rítmico de escala/opacidad. |
+| `imageAnimation` | Efecto                             |
+| ---------------- | ---------------------------------- |
+| `none`           | Imagen estática (por defecto).     |
+| `spin`           | Rotación continua.                 |
+| `pulse`          | Latido rítmico de escala/opacidad. |
 
 Dimensiona el recurso con `--hub-loading-image-size` y usa `--hub-loading-speed` para mantener
 la animación al compás del resto del movimiento de tu marca.
@@ -328,7 +347,7 @@ readonly busy = this.loading.isLoading; // Signal<boolean>
 
 Registra el provider una vez para redefinir los valores por defecto de toda la aplicación — la
 imagen de marca, la variante preferida, una etiqueta traducida — en lugar de repetirlos en cada
-punto de llamada. Alcanza a **ambos** consumidores: las superposiciones del servicio *y* cada
+punto de llamada. Alcanza a **ambos** consumidores: las superposiciones del servicio _y_ cada
 `<hub-loading>` escrito en una plantilla, porque cada input del componente recurre a la misma
 configuración. Un binding por instancia sigue ganando en local, y las opciones concretas de
 `show()` / `update()` se fusionan por encima.
@@ -357,8 +376,8 @@ defecto de cada input.
 
 ## 📊 Barra de progreso de página
 
-`<hub-loading-bar>` es la otra mitad de «algo está pasando»: no *esta zona está ocupada*,
-sino *la página misma está en camino*. Es la franja fina que ya conoces bajo una barra de
+`<hub-loading-bar>` es la otra mitad de «algo está pasando»: no _esta zona está ocupada_,
+sino _la página misma está en camino_. Es la franja fina que ya conoces bajo una barra de
 navegación, y la gobierna `HubLoadingBarService`.
 
 ### Las tres decisiones que la hacen creíble
@@ -468,17 +487,18 @@ Y cuando no hay porcentaje que merezca inventarse, desplaza en lugar de llenar:
 
 Selector: `hub-loading`. Standalone, `OnPush`, inputs signal.
 
-| Input | Tipo | Por defecto | Descripción |
-| --- | --- | --- | --- |
-| `mode` | `'inline' \| 'overlay' \| 'fullscreen'` | `'inline'` | Dónde se pinta el bloque. `overlay` se posiciona en absoluto sobre el contenedor (que necesita `position: relative`); `fullscreen` queda fijado al viewport. |
-| `variant` | `'spinner' \| 'dots' \| 'bars' \| 'pulse' \| 'ring'` | `'spinner'` | Qué indicador CSS dibujar. Se ignora cuando `image` está definido. |
-| `image` | `string \| null` | `null` | URL o data URI que se renderiza en lugar del indicador integrado. |
-| `imageAnimation` | `'none' \| 'spin' \| 'pulse'` | `'none'` | Animación aplicada a `image`. |
-| `message` | `string \| null` | `null` | Texto renderizado bajo el indicador. |
-| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Escala del indicador; mapea sobre `--hub-loading-size`, que siempre lo sobrescribe. |
-| `color` | `string \| null` | `null` | Color de acento: nombre semántico, hex, `rgb()`, `oklch()` o `var(...)`. Se resuelve con `resolveHubAccent()`. |
-| `backdrop` | `boolean` | `true` | Capa translúcida detrás del indicador. Solo aplica a `overlay` y `fullscreen`. Se lee con `booleanAttribute`, así que el atributo `backdrop` a secas también funciona. |
-| `ariaLabel` | `string` | `'Loading'` | Nombre accesible de la región de estado. |
+| Input            | Tipo                                                 | Por defecto | Descripción                                                                                                                                                                                                                                                            |
+| ---------------- | ---------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mode`           | `'inline' \| 'overlay' \| 'fullscreen'`              | `'inline'`  | Dónde se pinta el bloque. `overlay` se posiciona en absoluto sobre el contenedor (que necesita `position: relative`); `fullscreen` queda fijado al viewport.                                                                                                           |
+| `variant`        | `'spinner' \| 'dots' \| 'bars' \| 'pulse' \| 'ring'` | `'spinner'` | Qué indicador CSS dibujar. Se ignora cuando `image` está definido.                                                                                                                                                                                                     |
+| `image`          | `string \| null`                                     | `null`      | URL o data URI que se renderiza en lugar del indicador integrado.                                                                                                                                                                                                      |
+| `imageAnimation` | `'none' \| 'spin' \| 'pulse'`                        | `'none'`    | Animación aplicada a `image`.                                                                                                                                                                                                                                          |
+| `message`        | `string \| null`                                     | `null`      | Texto renderizado bajo el indicador.                                                                                                                                                                                                                                   |
+| `size`           | `'sm' \| 'md' \| 'lg'`                               | `'md'`      | Escala del indicador; mapea sobre `--hub-loading-size`, que siempre lo sobrescribe.                                                                                                                                                                                    |
+| `color`          | `string \| null`                                     | `null`      | Color de acento: nombre semántico, hex, `rgb()`, `oklch()` o `var(...)`. Se resuelve con `resolveHubAccent()`.                                                                                                                                                         |
+| `backdrop`       | `boolean`                                            | `true`      | Capa translúcida detrás del indicador. Solo aplica a `overlay` y `fullscreen`. Se lee con `booleanAttribute`, así que el atributo `backdrop` a secas también funciona.                                                                                                 |
+| `ariaLabel`      | `string`                                             | `'Loading'` | Nombre accesible de la región de estado.                                                                                                                                                                                                                               |
+| `appendTo`       | `string \| null`                                     | `'body'`    | Selector CSS del elemento al que se reubica un indicador `fullscreen`, para que no lo atrape la contención ni el contexto de apilado de un ancestro. `null` lo deja donde está declarado; un selector que no encuentra nada, igual. Se ignora en `inline` y `overlay`. |
 
 Este componente no tiene outputs. El contenido proyectado en él se renderiza bajo el mensaje.
 
@@ -490,13 +510,13 @@ Este componente no tiene outputs. El contenido proyectado en él se renderiza ba
 
 Inyectable (`providedIn: 'root'`). Gobierna una única superposición a pantalla completa adjunta a `document.body`.
 
-| Miembro | Firma | Descripción |
-| --- | --- | --- |
-| `show` | `(options?: HubLoadingOptions) => void` | Incrementa el contador y crea la superposición si aún no está montada. |
-| `hide` | `() => void` | Decrementa el contador; destruye la superposición cuando llega a cero. |
-| `hideAll` | `() => void` | Fuerza el contador a cero y destruye la superposición. |
-| `update` | `(options: HubLoadingOptions) => void` | Aplica nuevas opciones a la superposición visible. |
-| `isLoading` | `Signal<boolean>` | `true` mientras al menos una llamada mantenga su referencia — el contador, no el montaje. En renderizado en servidor sigue siendo veraz aunque no haya ninguna superposición montada. |
+| Miembro     | Firma                                   | Descripción                                                                                                                                                                           |
+| ----------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `show`      | `(options?: HubLoadingOptions) => void` | Incrementa el contador y crea la superposición si aún no está montada.                                                                                                                |
+| `hide`      | `() => void`                            | Decrementa el contador; destruye la superposición cuando llega a cero.                                                                                                                |
+| `hideAll`   | `() => void`                            | Fuerza el contador a cero y destruye la superposición.                                                                                                                                |
+| `update`    | `(options: HubLoadingOptions) => void`  | Aplica nuevas opciones a la superposición visible.                                                                                                                                    |
+| `isLoading` | `Signal<boolean>`                       | `true` mientras al menos una llamada mantenga su referencia — el contador, no el montaje. En renderizado en servidor sigue siendo veraz aunque no haya ninguna superposición montada. |
 
 ### `provideHubLoading(config?)`
 
@@ -514,16 +534,16 @@ Las opciones visuales que aceptan `show()` y `update()`, y que `provideHubLoadin
 valores por defecto de la aplicación. Reflejan los inputs del componente, menos `mode` — una
 superposición programática siempre es a pantalla completa.
 
-| Opción | Tipo | Descripción |
-| --- | --- | --- |
-| `variant` | `'spinner' \| 'dots' \| 'bars' \| 'pulse' \| 'ring'` | Indicador a dibujar. |
-| `image` | `string \| null` | Imagen o logo que sustituye al indicador. |
-| `imageAnimation` | `'none' \| 'spin' \| 'pulse'` | Animación aplicada a `image`. |
-| `message` | `string \| null` | Texto bajo el indicador. |
-| `size` | `'sm' \| 'md' \| 'lg'` | Escala del indicador. |
-| `color` | `string \| null` | Color de acento. |
-| `backdrop` | `boolean` | Capa translúcida detrás del indicador. |
-| `ariaLabel` | `string` | Nombre accesible de la región de estado. |
+| Opción           | Tipo                                                 | Descripción                               |
+| ---------------- | ---------------------------------------------------- | ----------------------------------------- |
+| `variant`        | `'spinner' \| 'dots' \| 'bars' \| 'pulse' \| 'ring'` | Indicador a dibujar.                      |
+| `image`          | `string \| null`                                     | Imagen o logo que sustituye al indicador. |
+| `imageAnimation` | `'none' \| 'spin' \| 'pulse'`                        | Animación aplicada a `image`.             |
+| `message`        | `string \| null`                                     | Texto bajo el indicador.                  |
+| `size`           | `'sm' \| 'md' \| 'lg'`                               | Escala del indicador.                     |
+| `color`          | `string \| null`                                     | Color de acento.                          |
+| `backdrop`       | `boolean`                                            | Capa translúcida detrás del indicador.    |
+| `ariaLabel`      | `string`                                             | Nombre accesible de la región de estado.  |
 
 `HubLoadingConfig` es la misma forma con todos los miembros obligatorios — es lo que contiene el
 token de inyección una vez resuelto.
@@ -532,15 +552,15 @@ token de inyección una vez resuelto.
 
 Selector: `hub-loading-bar`. Standalone, `OnPush`, inputs signal.
 
-| Input | Tipo | Por defecto | Descripción |
-| --- | --- | --- | --- |
-| `mode` | `'inline' \| 'overlay' \| 'fixed'` | `'inline'` | Dónde se sitúa la franja. `inline` reserva su propia fila en el flujo; `overlay` se posiciona en absoluto contra el ancestro posicionado más cercano; `fixed` la fija al viewport a la distancia de `--hub-loading-bar-offset`. |
-| `placement` | `'top' \| 'bottom'` | `'top'` | Borde al que se anclan los modos `overlay` y `fixed`. `inline` lo ignora. |
-| `progress` | `number \| null \| undefined` | `undefined` | Tres significados. Sin enlazar: sigue a `HubLoadingBarService`. Un número (0–100): gobierna la barra directamente y se publica como `aria-valuenow`. `null`: la oculta. |
-| `indeterminate` | `boolean` | `false` | Desplaza un fragmento en lugar de llenarse. Se lee con `booleanAttribute`, así que el atributo suelto también vale. |
-| `glow` | `boolean` | `true` | Resplandor suave tras el borde de avance. |
-| `color` | `string \| null` | `null` | Acento del relleno: nombre semántico, hex, `oklch()` o `var(...)`. Se resuelve con `resolveHubAccent()`. |
-| `ariaLabel` | `string` | `'Loading'` | Nombre accesible de la barra de progreso. |
+| Input           | Tipo                               | Por defecto | Descripción                                                                                                                                                                                                                     |
+| --------------- | ---------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mode`          | `'inline' \| 'overlay' \| 'fixed'` | `'inline'`  | Dónde se sitúa la franja. `inline` reserva su propia fila en el flujo; `overlay` se posiciona en absoluto contra el ancestro posicionado más cercano; `fixed` la fija al viewport a la distancia de `--hub-loading-bar-offset`. |
+| `placement`     | `'top' \| 'bottom'`                | `'top'`     | Borde al que se anclan los modos `overlay` y `fixed`. `inline` lo ignora.                                                                                                                                                       |
+| `progress`      | `number \| null \| undefined`      | `undefined` | Tres significados. Sin enlazar: sigue a `HubLoadingBarService`. Un número (0–100): gobierna la barra directamente y se publica como `aria-valuenow`. `null`: la oculta.                                                         |
+| `indeterminate` | `boolean`                          | `false`     | Desplaza un fragmento en lugar de llenarse. Se lee con `booleanAttribute`, así que el atributo suelto también vale.                                                                                                             |
+| `glow`          | `boolean`                          | `true`      | Resplandor suave tras el borde de avance.                                                                                                                                                                                       |
+| `color`         | `string \| null`                   | `null`      | Acento del relleno: nombre semántico, hex, `oklch()` o `var(...)`. Se resuelve con `resolveHubAccent()`.                                                                                                                        |
+| `ariaLabel`     | `string`                           | `'Loading'` | Nombre accesible de la barra de progreso.                                                                                                                                                                                       |
 
 Este componente no tiene outputs ni proyecta contenido.
 
@@ -554,17 +574,17 @@ Inyectable (`providedIn: 'root'`). Es dueño del estado compartido de progreso d
 representa cada `<hub-loading-bar>` sin enlazar. Proporciónalo en un componente para dar a
 una barra su propio estado.
 
-| Miembro | Firma | Descripción |
-| --- | --- | --- |
-| `start` | `() => void` | Registra una petición. La primera inicia un ciclo, tras el periodo de gracia y no de inmediato. |
-| `complete` | `() => void` | Retira una petición. A cero, la barra llega al 100 % y se desvanece, o desaparece sin haberse visto si nunca llegó a pintarse. |
-| `completeAll` | `() => void` | Descarta todas las peticiones pendientes y cierra la barra de golpe. |
-| `set` | `(value: number) => void` | Lleva la barra a un valor exacto y la muestra sin esperar el periodo de gracia. Se limita a 0–100, no a `max`. |
-| `inc` | `(amount?: number) => void` | Avanza la barra y la muestra. Sin cantidad decide la curva de avance configurada. Se limita a `max`. |
-| `reset` | `() => void` | Cancela todo: sin animación de cierre, sin peticiones pendientes, sin nada en pantalla. |
-| `progress` | `Signal<number>` | Relleno actual, de 0 a 100. |
-| `isActive` | `Signal<boolean>` | Si queda alguien esperando; cierto incluso durante el periodo de gracia. |
-| `isVisible` | `Signal<boolean>` | Si la barra está realmente pintada: falso durante el periodo de gracia, aún cierto durante la cola de cierre. |
+| Miembro       | Firma                       | Descripción                                                                                                                    |
+| ------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `start`       | `() => void`                | Registra una petición. La primera inicia un ciclo, tras el periodo de gracia y no de inmediato.                                |
+| `complete`    | `() => void`                | Retira una petición. A cero, la barra llega al 100 % y se desvanece, o desaparece sin haberse visto si nunca llegó a pintarse. |
+| `completeAll` | `() => void`                | Descarta todas las peticiones pendientes y cierra la barra de golpe.                                                           |
+| `set`         | `(value: number) => void`   | Lleva la barra a un valor exacto y la muestra sin esperar el periodo de gracia. Se limita a 0–100, no a `max`.                 |
+| `inc`         | `(amount?: number) => void` | Avanza la barra y la muestra. Sin cantidad decide la curva de avance configurada. Se limita a `max`.                           |
+| `reset`       | `() => void`                | Cancela todo: sin animación de cierre, sin peticiones pendientes, sin nada en pantalla.                                        |
+| `progress`    | `Signal<number>`            | Relleno actual, de 0 a 100.                                                                                                    |
+| `isActive`    | `Signal<boolean>`           | Si queda alguien esperando; cierto incluso durante el periodo de gracia.                                                       |
+| `isVisible`   | `Signal<boolean>`           | Si la barra está realmente pintada: falso durante el periodo de gracia, aún cierto durante la cola de cierre.                  |
 
 ### `provideHubLoadingBar(config?)`
 
@@ -578,18 +598,18 @@ function provideHubLoadingBar(config?: Partial<HubLoadingBarConfig>): Environmen
 
 ### `HubLoadingBarConfig`
 
-| Clave | Tipo | Por defecto | Descripción |
-| --- | --- | --- | --- |
-| `min` | `number` | `8` | Valor al que salta la barra al aparecer. Nunca cero: una barra vacía se lee como una barra que no funciona. |
-| `max` | `number` | `99` | Techo que el avance automático no puede cruzar, para que no prometa un final que no conoce. |
-| `trickleSpeed` | `number` | `250` | Milisegundos entre pasos del avance automático. |
-| `trickle` | `boolean` | `true` | Si la barra avanza por su cuenta mientras espera. |
-| `trickleFn` | `(progress: number) => number` | `hubLoadingBarTrickle` | Función de paso. La exportada por defecto devuelve 10 / 4 / 2 / 0,5 según se llena. |
-| `delay` | `number` | `100` | Periodo de gracia antes de pintar nada. El trabajo que acaba dentro no muestra barra. Con `0` la barra se revela de forma síncrona, así que el trabajo que se resuelve dentro de su propia tarea también se ve. |
-| `completeDelay` | `number` | `300` | Cuánto permanece la barra completada al 100 % antes de desvanecerse. Conviene que sea al menos `--hub-loading-bar-speed`. |
-| `color` | `string \| null` | `null` | Acento por defecto. |
-| `glow` | `boolean` | `true` | Resplandor por defecto. |
-| `ariaLabel` | `string` | `'Loading'` | Nombre accesible por defecto. |
+| Clave           | Tipo                           | Por defecto            | Descripción                                                                                                                                                                                                     |
+| --------------- | ------------------------------ | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `min`           | `number`                       | `8`                    | Valor al que salta la barra al aparecer. Nunca cero: una barra vacía se lee como una barra que no funciona.                                                                                                     |
+| `max`           | `number`                       | `99`                   | Techo que el avance automático no puede cruzar, para que no prometa un final que no conoce.                                                                                                                     |
+| `trickleSpeed`  | `number`                       | `250`                  | Milisegundos entre pasos del avance automático.                                                                                                                                                                 |
+| `trickle`       | `boolean`                      | `true`                 | Si la barra avanza por su cuenta mientras espera.                                                                                                                                                               |
+| `trickleFn`     | `(progress: number) => number` | `hubLoadingBarTrickle` | Función de paso. La exportada por defecto devuelve 10 / 4 / 2 / 0,5 según se llena.                                                                                                                             |
+| `delay`         | `number`                       | `100`                  | Periodo de gracia antes de pintar nada. El trabajo que acaba dentro no muestra barra. Con `0` la barra se revela de forma síncrona, así que el trabajo que se resuelve dentro de su propia tarea también se ve. |
+| `completeDelay` | `number`                       | `300`                  | Cuánto permanece la barra completada al 100 % antes de desvanecerse. Conviene que sea al menos `--hub-loading-bar-speed`.                                                                                       |
+| `color`         | `string \| null`               | `null`                 | Acento por defecto.                                                                                                                                                                                             |
+| `glow`          | `boolean`                      | `true`                 | Resplandor por defecto.                                                                                                                                                                                         |
+| `ariaLabel`     | `string`                       | `'Loading'`            | Nombre accesible por defecto.                                                                                                                                                                                   |
 
 ### `provideHubLoadingBarRouter()`
 
@@ -638,19 +658,19 @@ hasta el último elemento de dentro. La superposición que `HubLoadingService` m
 `document.body` es una instancia real del componente creada con `createComponent()`, así que se
 lleva esta hoja consigo.
 
-| Variable | Por defecto | Descripción |
-| --- | --- | --- |
-| `--hub-loading-accent` | `var(--hub-sys-color-primary, #0d6efd)` | Color del indicador. Es donde escribe el input `color`. |
-| `--hub-loading-size` | `2.5rem` | Tamaño de la caja del indicador. Es donde mapea el input `size`. |
-| `--hub-loading-thickness` | `calc(var(--hub-ref-border-width, 1px) * 3)` | Grosor del trazo de los indicadores `spinner` y `ring`. |
-| `--hub-loading-speed` | `0.9s` | Duración de un ciclo de animación, para los indicadores y para las animaciones de imagen. |
-| `--hub-loading-gap` | `var(--hub-sys-gap-2, var(--hub-ref-space-2, 0.5rem))` | Espacio entre indicador, mensaje y contenido proyectado. |
-| `--hub-loading-text-color` | `var(--hub-sys-text-primary, var(--hub-ref-color-gray-900, #212529))` | Color del mensaje. |
-| `--hub-loading-font-size` | `var(--hub-ref-font-size-sm, 0.875rem)` | Tamaño de fuente del mensaje. |
-| `--hub-loading-backdrop-bg` | `color-mix(in srgb, var(--hub-sys-surface-page, #fff) 72%, transparent)` | Fondo del backdrop en `overlay` / `fullscreen`. Sigue la superficie de página del propio tema, así que el velo es blanco en temas claros y oscuro en temas oscuros. |
-| `--hub-loading-backdrop-blur` | `2px` | Radio de desenfoque del backdrop. |
-| `--hub-loading-z-index` | `var(--hub-sys-zindex-modal, 1055)` | Orden de apilado de la capa `fullscreen`. |
-| `--hub-loading-image-size` | `var(--hub-loading-size)` | Tamaño con el que se renderiza el recurso de `image` — sigue al tamaño del indicador mientras no digas lo contrario. |
+| Variable                      | Por defecto                                                              | Descripción                                                                                                                                                         |
+| ----------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--hub-loading-accent`        | `var(--hub-sys-color-primary, #0d6efd)`                                  | Color del indicador. Es donde escribe el input `color`.                                                                                                             |
+| `--hub-loading-size`          | `2.5rem`                                                                 | Tamaño de la caja del indicador. Es donde mapea el input `size`.                                                                                                    |
+| `--hub-loading-thickness`     | `calc(var(--hub-ref-border-width, 1px) * 3)`                             | Grosor del trazo de los indicadores `spinner` y `ring`.                                                                                                             |
+| `--hub-loading-speed`         | `0.9s`                                                                   | Duración de un ciclo de animación, para los indicadores y para las animaciones de imagen.                                                                           |
+| `--hub-loading-gap`           | `var(--hub-sys-gap-2, var(--hub-ref-space-2, 0.5rem))`                   | Espacio entre indicador, mensaje y contenido proyectado.                                                                                                            |
+| `--hub-loading-text-color`    | `var(--hub-sys-text-primary, var(--hub-ref-color-gray-900, #212529))`    | Color del mensaje.                                                                                                                                                  |
+| `--hub-loading-font-size`     | `var(--hub-ref-font-size-sm, 0.875rem)`                                  | Tamaño de fuente del mensaje.                                                                                                                                       |
+| `--hub-loading-backdrop-bg`   | `color-mix(in srgb, var(--hub-sys-surface-page, #fff) 72%, transparent)` | Fondo del backdrop en `overlay` / `fullscreen`. Sigue la superficie de página del propio tema, así que el velo es blanco en temas claros y oscuro en temas oscuros. |
+| `--hub-loading-backdrop-blur` | `2px`                                                                    | Radio de desenfoque del backdrop.                                                                                                                                   |
+| `--hub-loading-z-index`       | `var(--hub-sys-zindex-modal, 1055)`                                      | Orden de apilado de la capa `fullscreen`.                                                                                                                           |
+| `--hub-loading-image-size`    | `var(--hub-loading-size)`                                                | Tamaño con el que se renderiza el recurso de `image` — sigue al tamaño del indicador mientras no digas lo contrario.                                                |
 
 ```css
 hub-loading {
@@ -693,21 +713,21 @@ llegar más o menos cuando cae el siguiente paso del avance, así que está acop
 `trickleSpeed`, y tomar prestada la escala de transiciones de la aplicación dejaría la barra
 un paso por detrás del número que dibuja en un tema lento.
 
-| Variable | Por defecto | Descripción |
-| --- | --- | --- |
-| `--hub-loading-bar-accent` | `var(--hub-sys-color-primary, #0d6efd)` | Color del relleno. Es donde escribe el input `color`. |
-| `--hub-loading-bar-height` | `3px` | Grosor de la franja. |
-| `--hub-loading-bar-track-bg` | `transparent` | Pista sin rellenar. Transparente para que una barra en reposo no dibuje una línea permanente bajo la navegación. |
-| `--hub-loading-bar-radius` | `0` | Radio de las esquinas de la franja y su relleno. |
-| `--hub-loading-bar-speed` | `200ms` | Cuánto tarda el relleno en alcanzar un valor nuevo. |
-| `--hub-loading-bar-fade` | `300ms` | Aparición y desaparición de toda la franja. |
-| `--hub-loading-bar-easing` | `linear` | Curva del relleno. Lineal se lee como avance constante y no como un adorno. |
-| `--hub-loading-bar-glow-color` | `var(--hub-loading-bar-accent)` | Color del resplandor del borde de avance. |
-| `--hub-loading-bar-glow-blur` | `10px` | Radio de desenfoque de ese resplandor. |
-| `--hub-loading-bar-glow-spread` | `1px` | Radio de expansión de ese resplandor. |
-| `--hub-loading-bar-indeterminate-speed` | `1.6s` | Periodo de un recorrido `indeterminate`. Se calma con `prefers-reduced-motion`. |
-| `--hub-loading-bar-offset` | `0px` | Distancia al borde al que se anclan los modos `overlay` y `fixed`: cuánto cuelga la barra bajo la navegación. |
-| `--hub-loading-bar-z-index` | `var(--hub-sys-zindex-sticky, 1020)` | Orden de apilado de los modos posicionados. Nivel de chrome, deliberadamente por debajo de diálogos y toasts. |
+| Variable                                | Por defecto                             | Descripción                                                                                                      |
+| --------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `--hub-loading-bar-accent`              | `var(--hub-sys-color-primary, #0d6efd)` | Color del relleno. Es donde escribe el input `color`.                                                            |
+| `--hub-loading-bar-height`              | `3px`                                   | Grosor de la franja.                                                                                             |
+| `--hub-loading-bar-track-bg`            | `transparent`                           | Pista sin rellenar. Transparente para que una barra en reposo no dibuje una línea permanente bajo la navegación. |
+| `--hub-loading-bar-radius`              | `0`                                     | Radio de las esquinas de la franja y su relleno.                                                                 |
+| `--hub-loading-bar-speed`               | `200ms`                                 | Cuánto tarda el relleno en alcanzar un valor nuevo.                                                              |
+| `--hub-loading-bar-fade`                | `300ms`                                 | Aparición y desaparición de toda la franja.                                                                      |
+| `--hub-loading-bar-easing`              | `linear`                                | Curva del relleno. Lineal se lee como avance constante y no como un adorno.                                      |
+| `--hub-loading-bar-glow-color`          | `var(--hub-loading-bar-accent)`         | Color del resplandor del borde de avance.                                                                        |
+| `--hub-loading-bar-glow-blur`           | `10px`                                  | Radio de desenfoque de ese resplandor.                                                                           |
+| `--hub-loading-bar-glow-spread`         | `1px`                                   | Radio de expansión de ese resplandor.                                                                            |
+| `--hub-loading-bar-indeterminate-speed` | `1.6s`                                  | Periodo de un recorrido `indeterminate`. Se calma con `prefers-reduced-motion`.                                  |
+| `--hub-loading-bar-offset`              | `0px`                                   | Distancia al borde al que se anclan los modos `overlay` y `fixed`: cuánto cuelga la barra bajo la navegación.    |
+| `--hub-loading-bar-z-index`             | `var(--hub-sys-zindex-sticky, 1020)`    | Orden de apilado de los modos posicionados. Nivel de chrome, deliberadamente por debajo de diálogos y toasts.    |
 
 ```css
 hub-loading-bar {
@@ -724,29 +744,29 @@ opcionales que `hub-loading-theme()`.
 
 La estructura interna es estable y direccionable, para los casos a los que un token no llega:
 
-| Clase | Elemento |
-| --- | --- |
-| `.hub-loading` | Bloque anfitrión. |
-| `.hub-loading--inline` · `--overlay` · `--fullscreen` | Modificadores de modo. |
-| `.hub-loading--sm` · `--md` · `--lg` | Modificadores de tamaño; cada uno reajusta los tokens de tamaño, grosor y tipografía. |
-| `.hub-loading--backdrop` | Presente solo cuando se pinta el velo (nunca en modo `inline`). |
-| `.hub-loading__indicator` | El indicador puramente CSS, con un modificador `--spinner` / `--dots` / `--bars` / `--pulse` / `--ring`. |
-| `.hub-loading__dot` · `.hub-loading__bar` | Las piezas individuales de los indicadores `dots` y `bars`. |
-| `.hub-loading__image` | El recurso de `image`, con `--spin` / `--pulse` cuando está animado. |
-| `.hub-loading__message` | El texto del mensaje. |
+| Clase                                                 | Elemento                                                                                                 |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `.hub-loading`                                        | Bloque anfitrión.                                                                                        |
+| `.hub-loading--inline` · `--overlay` · `--fullscreen` | Modificadores de modo.                                                                                   |
+| `.hub-loading--sm` · `--md` · `--lg`                  | Modificadores de tamaño; cada uno reajusta los tokens de tamaño, grosor y tipografía.                    |
+| `.hub-loading--backdrop`                              | Presente solo cuando se pinta el velo (nunca en modo `inline`).                                          |
+| `.hub-loading__indicator`                             | El indicador puramente CSS, con un modificador `--spinner` / `--dots` / `--bars` / `--pulse` / `--ring`. |
+| `.hub-loading__dot` · `.hub-loading__bar`             | Las piezas individuales de los indicadores `dots` y `bars`.                                              |
+| `.hub-loading__image`                                 | El recurso de `image`, con `--spin` / `--pulse` cuando está animado.                                     |
+| `.hub-loading__message`                               | El texto del mensaje.                                                                                    |
 
 La barra tiene su propio juego, y conviene conocerlo: casi todo lo que hay ahí es estado al
 que puedes engancharte desde CSS, no estructura en la que tengas que meterte:
 
-| Clase | Elemento |
-| --- | --- |
-| `.hub-loading-bar` | Bloque anfitrión. |
-| `.hub-loading-bar--inline` · `--overlay` · `--fixed` | Modificadores de modo. |
-| `.hub-loading-bar--top` · `--bottom` | Modificadores de colocación; solo los emiten los dos modos posicionados, así que nunca alcanzan a una barra en flujo. |
-| `.hub-loading-bar--visible` | Presente solo mientras la barra está pintada. La transición del relleno está acotada a él, de modo que el rebobinado entre ciclos no se anima hacia atrás. |
-| `.hub-loading-bar--indeterminate` | El recorrido está en marcha en lugar de un relleno. |
-| `.hub-loading-bar--glow` | El resplandor del borde de avance está activo — es el valor por defecto, salvo que `[glow]="false"` o un `provideHubLoadingBar()` reajustado lo apaguen. |
-| `.hub-loading-bar__indicator` | El relleno en sí; su `::after` pinta el resplandor. |
+| Clase                                                | Elemento                                                                                                                                                   |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.hub-loading-bar`                                   | Bloque anfitrión.                                                                                                                                          |
+| `.hub-loading-bar--inline` · `--overlay` · `--fixed` | Modificadores de modo.                                                                                                                                     |
+| `.hub-loading-bar--top` · `--bottom`                 | Modificadores de colocación; solo los emiten los dos modos posicionados, así que nunca alcanzan a una barra en flujo.                                      |
+| `.hub-loading-bar--visible`                          | Presente solo mientras la barra está pintada. La transición del relleno está acotada a él, de modo que el rebobinado entre ciclos no se anima hacia atrás. |
+| `.hub-loading-bar--indeterminate`                    | El recorrido está en marcha en lugar de un relleno.                                                                                                        |
+| `.hub-loading-bar--glow`                             | El resplandor del borde de avance está activo — es el valor por defecto, salvo que `[glow]="false"` o un `provideHubLoadingBar()` reajustado lo apaguen.   |
+| `.hub-loading-bar__indicator`                        | El relleno en sí; su `::after` pinta el resplandor.                                                                                                        |
 
 ### De derecha a izquierda
 

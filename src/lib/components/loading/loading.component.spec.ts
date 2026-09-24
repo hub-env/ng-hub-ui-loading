@@ -19,6 +19,7 @@ import { HubLoadingComponent } from './loading.component';
 			[color]="color()"
 			[backdrop]="backdrop()"
 			[ariaLabel]="ariaLabel()"
+			[appendTo]="appendTo()"
 		>
 			<span class="projected">Extra</span>
 		</hub-loading>
@@ -34,6 +35,8 @@ class HostLoadingComponent {
 	readonly color = signal<string | null>(null);
 	readonly backdrop = signal(true);
 	readonly ariaLabel = signal('Loading');
+	/** Hoisting is off here so `element()` keeps finding the node; it has its own spec file. */
+	readonly appendTo = signal<string | null>(null);
 }
 
 describe('HubLoadingComponent', () => {

@@ -1,4 +1,16 @@
-import { booleanAttribute, ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import {
+	booleanAttribute,
+	ChangeDetectionStrategy,
+	Component,
+	computed,
+	DestroyRef,
+	effect,
+	ElementRef,
+	inject,
+	input,
+	PLATFORM_ID
+} from '@angular/core';
 import { resolveHubAccent } from 'ng-hub-ui-utils';
 import { HUB_LOADING_CONFIG } from '../../loading-config';
 import { HubLoadingImageAnimation, HubLoadingMode, HubLoadingSize, HubLoadingVariant } from '../../models/loading.types';
@@ -14,6 +26,9 @@ import { HubLoadingImageAnimation, HubLoadingMode, HubLoadingSize, HubLoadingVar
  * consumer retheming the indicator from a global stylesheet wins without having to
  * out-specify anything. The overlay `HubLoadingService` mounts on `document.body` is a
  * regular instance of this component, so it carries the same stylesheet with it.
+ *
+ * A `fullscreen` indicator moves to `<body>` for the same reason the service mounts there —
+ * see {@link appendTo}.
  *
  * @example
  * ```html
@@ -47,7 +62,8 @@ export class HubLoadingComponent {
 
 	/**
 	 * Placement of the indicator. `overlay` needs a positioned ancestor to cover;
-	 * `fullscreen` is fixed to the viewport and layered at `--hub-loading-z-index`.
+	 * `fullscreen` is fixed to the viewport, layered at `--hub-loading-z-index`, and moved to
+	 * {@link appendTo} so neither of those is decided by an ancestor.
 	 */
 	readonly mode = input<HubLoadingMode>('inline');
 
@@ -79,6 +95,25 @@ export class HubLoadingComponent {
 	/** Accessible label announced by the host's `role="status"` live region. */
 	readonly ariaLabel = input<string>(this.config.ariaLabel);
 
+	/**
+	 * CSS selector of the element a `fullscreen` indicator is re-parented to; `null` leaves it
+	 * where the template declares it.
+	 *
+	 * `position: fixed` measures from the viewport only while no ancestor applies layout
+	 * containment, a transform or a filter, and it paints over the page only while no ancestor
+	 * opens a stacking context. A shell cannot promise either — `<hub-side-panel-container>`
+	 * opens one on purpose, and any card with a `transform` breaks the first — so an indicator
+	 * declared deep in a page covered its own corner of it rather than the window. Leaving the
+	 * subtree is the only fix that does not depend on what every ancestor happens to declare, and
+	 * it is what the family already does with anything that has to float (a select panel, the
+	 * service's own overlay). `inline` and `overlay` are never moved: they exist to sit where the
+	 * consumer put them.
+	 *
+	 * A selector that matches nothing leaves the indicator in place rather than guessing at
+	 * another parent.
+	 */
+	readonly appendTo = input<string | null>('body');
+
 	/** Mode and size modifiers; kept as one binding so a size change cannot drop the mode. */
 	protected readonly _modifierClasses = computed(() => `hub-loading--${this.mode()} hub-loading--${this.size()}`);
 
@@ -98,4 +133,53 @@ export class HubLoadingComponent {
 	protected readonly _imageClasses = computed(() =>
 		this.imageAnimation() === 'none' ? '' : `hub-loading__image--${this.imageAnimation()}`
 	);
+
+	constructor() {
+		const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+		const document = inject(DOCUMENT);
+		const isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+		/** Where the template put the node, remembered on the first move so it can be put back. */
+		let home: { parent: Node; before: Node | null } | null = null;
+
+		effect(() => {
+			const selector = this.mode() === 'fullscreen' ? this.appendTo() : null;
+
+			// The server renders the indicator where it is written; hydration finds it there and
+			// the move happens once on the client, after the first change detection.
+			if (!isBrowser) {
+				return;
+			}
+
+			const target = selector ? document.querySelector(selector) : null;
+
+			if (!target) {
+				if (home) {
+					// The anchor may be gone if the surrounding view was rebuilt, and inserting
+					// before a node that moved throws; appending to the old parent still lands the
+					// indicator back in the block it came from.
+					home.parent.insertBefore(host, home.before?.parentNode === home.parent ? home.before : null);
+					home = null;
+				}
+				return;
+			}
+
+			if (target === host.parentNode) {
+				return;
+			}
+
+			if (host.parentNode) {
+				home ??= { parent: host.parentNode, before: host.nextSibling };
+			}
+			target.appendChild(host);
+		});
+
+		inject(DestroyRef).onDestroy(() => {
+			// Angular removes the host node it created, but this one no longer hangs from the view
+			// being torn down, so nothing else would take it off the page.
+			if (home) {
+				host.remove();
+			}
+		});
+	}
 }

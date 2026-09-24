@@ -76,13 +76,13 @@ and that can render in flow, over its own container, or over the whole viewport.
 
 ### When to reach for which library
 
-| Package | Use it when |
-| --- | --- |
-| **`ng-hub-ui-loading`** | You cannot say how far along the work is, and the shape of the result does not matter yet. An activity indicator — in place, over the busy container, or over the whole app. |
-| [`ng-hub-ui-skeleton`](https://www.npmjs.com/package/ng-hub-ui-skeleton) | You already know the shape of what is coming and want the layout to hold its place — structural shimmer placeholders instead of a spinner. |
-| [`ng-hub-ui-metrics`](https://www.npmjs.com/package/ng-hub-ui-metrics) | You know the progress figure — a determinate progress bar, meter or ring that reports a value. |
+| Package                                                                  | Use it when                                                                                                                                                                  |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`ng-hub-ui-loading`**                                                  | You cannot say how far along the work is, and the shape of the result does not matter yet. An activity indicator — in place, over the busy container, or over the whole app. |
+| [`ng-hub-ui-skeleton`](https://www.npmjs.com/package/ng-hub-ui-skeleton) | You already know the shape of what is coming and want the layout to hold its place — structural shimmer placeholders instead of a spinner.                                   |
+| [`ng-hub-ui-metrics`](https://www.npmjs.com/package/ng-hub-ui-metrics)   | You know the progress figure — a determinate progress bar, meter or ring that reports a value.                                                                               |
 
-> **`<hub-loading-bar>` versus `<hub-progress>`.** They look alike and answer different questions. `hub-progress`, in `ng-hub-ui-metrics`, *displays a value you already know*: it is a data component, and its number is true. `hub-loading-bar` reports that something is happening when nobody knows how long it will take — it invents the number and never lets it reach the end. Use the metrics one for an upload that reports bytes; use this one for the strip under the navbar.
+> **`<hub-loading-bar>` versus `<hub-progress>`.** They look alike and answer different questions. `hub-progress`, in `ng-hub-ui-metrics`, _displays a value you already know_: it is a data component, and its number is true. `hub-loading-bar` reports that something is happening when nobody knows how long it will take — it invents the number and never lets it reach the end. Use the metrics one for an upload that reports bytes; use this one for the strip under the navbar.
 
 The three compose: a skeleton for the list that is arriving, a `<hub-loading mode="overlay">`
 over the panel being refreshed, and a `<hub-progress>` for the upload that reports bytes.
@@ -94,7 +94,7 @@ over the panel being refreshed, and a `<hub-progress>` for the upload that repor
 - **Image / logo support** — swap the indicator for your own brand asset and animate it with `spin` or `pulse`.
 - **Optional message and projected content** — a caption under the indicator plus an `<ng-content>` slot for anything else.
 - **Programmatic overlays** — `HubLoadingService` mounts a fullscreen `<hub-loading>` on demand, with reference-counted `show()` / `hide()` so concurrent tasks cannot dismiss each other's overlay.
-- **Application-wide defaults** — `provideHubLoading()` re-bases every input's default, for the service *and* for every `<hub-loading>` in a template, without touching a single markup file.
+- **Application-wide defaults** — `provideHubLoading()` re-bases every input's default, for the service _and_ for every `<hub-loading>` in a template, without touching a single markup file.
 - **Any accent colour** — `color` accepts a semantic design-system name, a hex value, `oklch()` or a `var(...)` reference, resolved through `resolveHubAccent()` from `ng-hub-ui-utils`.
 - **CSS-variable theming** — every colour, dimension and speed is a `--hub-loading-*` custom property, with a `hub-loading-theme()` Sass mixin for one-call re-skinning.
 - **Accessible by default** — `role="status"`, `aria-live="polite"` and `aria-busy="true"`, with a configurable `ariaLabel` and a `prefers-reduced-motion` treatment that calms the motion instead of freezing it.
@@ -170,7 +170,7 @@ while the refresh runs.
 	<article>…already rendered content…</article>
 
 	@if (refreshing()) {
-		<hub-loading mode="overlay" variant="ring" message="Refreshing…" />
+	<hub-loading mode="overlay" variant="ring" message="Refreshing…" />
 	}
 </section>
 ```
@@ -182,9 +182,28 @@ component owns the state, or let [`HubLoadingService`](#-programmatic-api) mount
 
 ```html
 @if (booting()) {
-	<hub-loading mode="fullscreen" variant="pulse" message="Starting up…" />
+<hub-loading mode="fullscreen" variant="pulse" message="Starting up…" />
 }
 ```
+
+**It moves to `<body>` to get there.** `position: fixed` only measures from the viewport
+while no ancestor applies layout containment, a transform or a filter, and only paints over
+the page while no ancestor opens a stacking context — neither of which a page can promise.
+Written inside a card with a `transform`, or inside a shell that isolates its stacking
+context, the indicator would cover that box instead of the window. So it leaves the subtree,
+exactly as `HubLoadingService` and `hub-select` already do.
+
+`appendTo` names the target; it defaults to `'body'`, takes any CSS selector, and takes
+`null` to leave the indicator where the template puts it. A selector that matches nothing
+also leaves it in place. `inline` and `overlay` are never moved.
+
+```html
+<hub-loading mode="fullscreen" appendTo="#overlay-root" /> <hub-loading mode="fullscreen" [appendTo]="null" />
+```
+
+> The element moves, the component does not: a `viewChild` still finds it, inputs and
+> projected content work as before. What no longer reaches it is a stylesheet rule written
+> against an ancestor, and a `--hub-*` token set on an ancestor rather than on `:root`.
 
 ### Backdrop
 
@@ -199,13 +218,13 @@ and `fullscreen` only — an inline block has nothing to cover — and is on by 
 
 Five indicators, all drawn with CSS. Pick with the `variant` input.
 
-| Variant | Shape |
-| --- | --- |
-| `spinner` | Rotating arc (the default). |
-| `dots` | Three dots pulsing in sequence. |
-| `bars` | Bars rising and falling. |
-| `pulse` | A single expanding, fading disc. |
-| `ring` | A full ring with a travelling highlight. |
+| Variant   | Shape                                    |
+| --------- | ---------------------------------------- |
+| `spinner` | Rotating arc (the default).              |
+| `dots`    | Three dots pulsing in sequence.          |
+| `bars`    | Bars rising and falling.                 |
+| `pulse`   | A single expanding, fading disc.         |
+| `ring`    | A full ring with a travelling highlight. |
 
 ```html
 <hub-loading variant="dots" />
@@ -238,11 +257,11 @@ case being a product logo on the boot screen. `imageAnimation` gives it motion.
 <hub-loading mode="fullscreen" image="/assets/logo.svg" imageAnimation="pulse" message="Preparing your workspace…" />
 ```
 
-| `imageAnimation` | Effect |
-| --- | --- |
-| `none` | Static image (the default). |
-| `spin` | Continuous rotation. |
-| `pulse` | Rhythmic scale/opacity beat. |
+| `imageAnimation` | Effect                       |
+| ---------------- | ---------------------------- |
+| `none`           | Static image (the default).  |
+| `spin`           | Continuous rotation.         |
+| `pulse`          | Rhythmic scale/opacity beat. |
 
 Size the asset with `--hub-loading-image-size`, and use `--hub-loading-speed` to keep the
 animation in step with the rest of your brand's motion.
@@ -327,7 +346,7 @@ readonly busy = this.loading.isLoading; // Signal<boolean>
 
 Register the provider once to re-base the defaults for the whole application — the brand
 image, the preferred variant, a translated label — instead of repeating them at each call
-site. It reaches **both** consumers: the service's overlays *and* every `<hub-loading>`
+site. It reaches **both** consumers: the service's overlays _and_ every `<hub-loading>`
 written in a template, because each component input falls back to the same configuration.
 A per-instance binding still wins locally, and individual `show()` / `update()` options are
 merged on top.
@@ -356,8 +375,8 @@ default below.
 
 ## 📊 Page Progress Bar
 
-`<hub-loading-bar>` is the other half of "something is happening": not *this region is
-busy*, but *the page itself is on its way*. It is the thin strip you already know from
+`<hub-loading-bar>` is the other half of "something is happening": not _this region is
+busy_, but _the page itself is on its way_. It is the thin strip you already know from
 under a navbar, and it is driven by `HubLoadingBarService`.
 
 ### The three decisions that make it believable
@@ -466,17 +485,18 @@ And when there is no percentage worth inventing, sweep instead of filling:
 
 Selector: `hub-loading`. Standalone, `OnPush`, signal inputs.
 
-| Input | Type | Default | Description |
-| --- | --- | --- | --- |
-| `mode` | `'inline' \| 'overlay' \| 'fullscreen'` | `'inline'` | Where the block paints. `overlay` is absolutely positioned over the parent (which needs `position: relative`); `fullscreen` is fixed to the viewport. |
-| `variant` | `'spinner' \| 'dots' \| 'bars' \| 'pulse' \| 'ring'` | `'spinner'` | Which pure-CSS indicator to draw. Ignored when `image` is set. |
-| `image` | `string \| null` | `null` | URL or data URI rendered instead of the built-in indicator. |
-| `imageAnimation` | `'none' \| 'spin' \| 'pulse'` | `'none'` | Animation applied to `image`. |
-| `message` | `string \| null` | `null` | Text rendered under the indicator. |
-| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Indicator scale; maps onto `--hub-loading-size`, which always overrides it. |
-| `color` | `string \| null` | `null` | Accent colour: semantic name, hex, `rgb()`, `oklch()` or `var(...)`. Resolved with `resolveHubAccent()`. |
-| `backdrop` | `boolean` | `true` | Translucent layer behind the indicator. Applies to `overlay` and `fullscreen` only. Read with `booleanAttribute`, so the bare `backdrop` attribute also works. |
-| `ariaLabel` | `string` | `'Loading'` | Accessible name of the status region. |
+| Input            | Type                                                 | Default     | Description                                                                                                                                                                                                                                                             |
+| ---------------- | ---------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mode`           | `'inline' \| 'overlay' \| 'fullscreen'`              | `'inline'`  | Where the block paints. `overlay` is absolutely positioned over the parent (which needs `position: relative`); `fullscreen` is fixed to the viewport.                                                                                                                   |
+| `variant`        | `'spinner' \| 'dots' \| 'bars' \| 'pulse' \| 'ring'` | `'spinner'` | Which pure-CSS indicator to draw. Ignored when `image` is set.                                                                                                                                                                                                          |
+| `image`          | `string \| null`                                     | `null`      | URL or data URI rendered instead of the built-in indicator.                                                                                                                                                                                                             |
+| `imageAnimation` | `'none' \| 'spin' \| 'pulse'`                        | `'none'`    | Animation applied to `image`.                                                                                                                                                                                                                                           |
+| `message`        | `string \| null`                                     | `null`      | Text rendered under the indicator.                                                                                                                                                                                                                                      |
+| `size`           | `'sm' \| 'md' \| 'lg'`                               | `'md'`      | Indicator scale; maps onto `--hub-loading-size`, which always overrides it.                                                                                                                                                                                             |
+| `color`          | `string \| null`                                     | `null`      | Accent colour: semantic name, hex, `rgb()`, `oklch()` or `var(...)`. Resolved with `resolveHubAccent()`.                                                                                                                                                                |
+| `backdrop`       | `boolean`                                            | `true`      | Translucent layer behind the indicator. Applies to `overlay` and `fullscreen` only. Read with `booleanAttribute`, so the bare `backdrop` attribute also works.                                                                                                          |
+| `ariaLabel`      | `string`                                             | `'Loading'` | Accessible name of the status region.                                                                                                                                                                                                                                   |
+| `appendTo`       | `string \| null`                                     | `'body'`    | CSS selector of the element a `fullscreen` indicator is re-parented to, so it is not trapped by an ancestor's containment or stacking context. `null` keeps it where it is declared; a selector that matches nothing does the same. Ignored for `inline` and `overlay`. |
 
 This component has no outputs. Content projected into it renders below the message.
 
@@ -487,13 +507,13 @@ This component has no outputs. Content projected into it renders below the messa
 
 Injectable (`providedIn: 'root'`). Drives a single fullscreen overlay attached to `document.body`.
 
-| Member | Signature | Description |
-| --- | --- | --- |
-| `show` | `(options?: HubLoadingOptions) => void` | Increments the counter and creates the overlay if it is not mounted yet. |
-| `hide` | `() => void` | Decrements the counter; destroys the overlay when it reaches zero. |
-| `hideAll` | `() => void` | Forces the counter to zero and destroys the overlay. |
-| `update` | `(options: HubLoadingOptions) => void` | Applies new options to the visible overlay. |
-| `isLoading` | `Signal<boolean>` | `true` while at least one caller still holds a reference — the counter, not the mount. During server rendering it is truthful even though no overlay is mounted. |
+| Member      | Signature                               | Description                                                                                                                                                      |
+| ----------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `show`      | `(options?: HubLoadingOptions) => void` | Increments the counter and creates the overlay if it is not mounted yet.                                                                                         |
+| `hide`      | `() => void`                            | Decrements the counter; destroys the overlay when it reaches zero.                                                                                               |
+| `hideAll`   | `() => void`                            | Forces the counter to zero and destroys the overlay.                                                                                                             |
+| `update`    | `(options: HubLoadingOptions) => void`  | Applies new options to the visible overlay.                                                                                                                      |
+| `isLoading` | `Signal<boolean>`                       | `true` while at least one caller still holds a reference — the counter, not the mount. During server rendering it is truthful even though no overlay is mounted. |
 
 ### `provideHubLoading(config?)`
 
@@ -511,16 +531,16 @@ The visual options accepted by `show()` and `update()`, and by `provideHubLoadin
 application-wide defaults. They mirror the component inputs, minus `mode` — a programmatic
 overlay is always fullscreen.
 
-| Option | Type | Description |
-| --- | --- | --- |
-| `variant` | `'spinner' \| 'dots' \| 'bars' \| 'pulse' \| 'ring'` | Indicator to draw. |
-| `image` | `string \| null` | Image or logo replacing the indicator. |
-| `imageAnimation` | `'none' \| 'spin' \| 'pulse'` | Animation applied to `image`. |
-| `message` | `string \| null` | Text under the indicator. |
-| `size` | `'sm' \| 'md' \| 'lg'` | Indicator scale. |
-| `color` | `string \| null` | Accent colour. |
-| `backdrop` | `boolean` | Translucent layer behind the indicator. |
-| `ariaLabel` | `string` | Accessible name of the status region. |
+| Option           | Type                                                 | Description                             |
+| ---------------- | ---------------------------------------------------- | --------------------------------------- |
+| `variant`        | `'spinner' \| 'dots' \| 'bars' \| 'pulse' \| 'ring'` | Indicator to draw.                      |
+| `image`          | `string \| null`                                     | Image or logo replacing the indicator.  |
+| `imageAnimation` | `'none' \| 'spin' \| 'pulse'`                        | Animation applied to `image`.           |
+| `message`        | `string \| null`                                     | Text under the indicator.               |
+| `size`           | `'sm' \| 'md' \| 'lg'`                               | Indicator scale.                        |
+| `color`          | `string \| null`                                     | Accent colour.                          |
+| `backdrop`       | `boolean`                                            | Translucent layer behind the indicator. |
+| `ariaLabel`      | `string`                                             | Accessible name of the status region.   |
 
 `HubLoadingConfig` is the same shape with every member required — it is what the injection
 token holds once resolved.
@@ -529,15 +549,15 @@ token holds once resolved.
 
 Selector: `hub-loading-bar`. Standalone, `OnPush`, signal inputs.
 
-| Input | Type | Default | Description |
-| --- | --- | --- | --- |
-| `mode` | `'inline' \| 'overlay' \| 'fixed'` | `'inline'` | Where the strip sits. `inline` reserves its own row in the flow; `overlay` is absolutely positioned against the nearest positioned ancestor; `fixed` is pinned to the viewport at `--hub-loading-bar-offset`. |
-| `placement` | `'top' \| 'bottom'` | `'top'` | Edge the `overlay` and `fixed` modes attach to. `inline` ignores it. |
-| `progress` | `number \| null \| undefined` | `undefined` | Three meanings. Unbound: follow `HubLoadingBarService`. A number (0–100): drive the bar directly, and publish it as `aria-valuenow`. `null`: hide the bar. |
-| `indeterminate` | `boolean` | `false` | Sweep a fragment across instead of filling. Read with `booleanAttribute`, so the bare attribute works. |
-| `glow` | `boolean` | `true` | Soft glow trailing the leading edge. |
-| `color` | `string \| null` | `null` | Accent for the fill: semantic name, hex, `oklch()` or `var(...)`. Resolved with `resolveHubAccent()`. |
-| `ariaLabel` | `string` | `'Loading'` | Accessible name of the progressbar. |
+| Input           | Type                               | Default     | Description                                                                                                                                                                                                   |
+| --------------- | ---------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mode`          | `'inline' \| 'overlay' \| 'fixed'` | `'inline'`  | Where the strip sits. `inline` reserves its own row in the flow; `overlay` is absolutely positioned against the nearest positioned ancestor; `fixed` is pinned to the viewport at `--hub-loading-bar-offset`. |
+| `placement`     | `'top' \| 'bottom'`                | `'top'`     | Edge the `overlay` and `fixed` modes attach to. `inline` ignores it.                                                                                                                                          |
+| `progress`      | `number \| null \| undefined`      | `undefined` | Three meanings. Unbound: follow `HubLoadingBarService`. A number (0–100): drive the bar directly, and publish it as `aria-valuenow`. `null`: hide the bar.                                                    |
+| `indeterminate` | `boolean`                          | `false`     | Sweep a fragment across instead of filling. Read with `booleanAttribute`, so the bare attribute works.                                                                                                        |
+| `glow`          | `boolean`                          | `true`      | Soft glow trailing the leading edge.                                                                                                                                                                          |
+| `color`         | `string \| null`                   | `null`      | Accent for the fill: semantic name, hex, `oklch()` or `var(...)`. Resolved with `resolveHubAccent()`.                                                                                                         |
+| `ariaLabel`     | `string`                           | `'Loading'` | Accessible name of the progressbar.                                                                                                                                                                           |
 
 This component has no outputs and projects no content.
 
@@ -550,17 +570,17 @@ Injectable (`providedIn: 'root'`). Owns the shared page-progress state that ever
 `<hub-loading-bar>` renders. Provide it on a component instead to give one bar its own
 state.
 
-| Member | Signature | Description |
-| --- | --- | --- |
-| `start` | `() => void` | Registers one caller. The first begins a cycle — after the grace period, not immediately. |
-| `complete` | `() => void` | Retires one caller. At zero the bar runs to 100% and fades, or disappears unseen if it never got painted. |
-| `completeAll` | `() => void` | Drops every pending caller and completes the bar at once. |
-| `set` | `(value: number) => void` | Moves the bar to an exact value and reveals it without waiting out the grace period. Clamped to 0–100, not to `max`. |
-| `inc` | `(amount?: number) => void` | Advances the bar and reveals it. Without an amount the configured trickle curve decides. Capped at `max`. |
-| `reset` | `() => void` | Cancels everything: no completion animation, no pending callers, nothing on screen. |
-| `progress` | `Signal<number>` | Current fill, 0–100. |
-| `isActive` | `Signal<boolean>` | Whether any caller is still waiting — true even during the grace period. |
-| `isVisible` | `Signal<boolean>` | Whether the bar is actually painted — false during the grace period, still true through the completion tail. |
+| Member        | Signature                   | Description                                                                                                          |
+| ------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `start`       | `() => void`                | Registers one caller. The first begins a cycle — after the grace period, not immediately.                            |
+| `complete`    | `() => void`                | Retires one caller. At zero the bar runs to 100% and fades, or disappears unseen if it never got painted.            |
+| `completeAll` | `() => void`                | Drops every pending caller and completes the bar at once.                                                            |
+| `set`         | `(value: number) => void`   | Moves the bar to an exact value and reveals it without waiting out the grace period. Clamped to 0–100, not to `max`. |
+| `inc`         | `(amount?: number) => void` | Advances the bar and reveals it. Without an amount the configured trickle curve decides. Capped at `max`.            |
+| `reset`       | `() => void`                | Cancels everything: no completion animation, no pending callers, nothing on screen.                                  |
+| `progress`    | `Signal<number>`            | Current fill, 0–100.                                                                                                 |
+| `isActive`    | `Signal<boolean>`           | Whether any caller is still waiting — true even during the grace period.                                             |
+| `isVisible`   | `Signal<boolean>`           | Whether the bar is actually painted — false during the grace period, still true through the completion tail.         |
 
 ### `provideHubLoadingBar(config?)`
 
@@ -574,18 +594,18 @@ function provideHubLoadingBar(config?: Partial<HubLoadingBarConfig>): Environmen
 
 ### `HubLoadingBarConfig`
 
-| Key | Type | Default | Description |
-| --- | --- | --- | --- |
-| `min` | `number` | `8` | Value the bar jumps to when it appears. Never zero — an empty bar reads as a bar that is not working. |
-| `max` | `number` | `99` | Ceiling the trickle may not cross, so it cannot promise an ending it does not know about. |
-| `trickleSpeed` | `number` | `250` | Milliseconds between trickle ticks. |
-| `trickle` | `boolean` | `true` | Whether the bar advances on its own while it waits. |
-| `trickleFn` | `(progress: number) => number` | `hubLoadingBarTrickle` | Step function. The exported default returns 10 / 4 / 2 / 0.5 as the bar fills. |
-| `delay` | `number` | `100` | Grace period before anything is painted. Work finishing inside it shows no bar. `0` reveals the bar synchronously, so work that settles within its own task is still shown. |
-| `completeDelay` | `number` | `300` | How long the completed bar stays at 100% before fading. Wants to be at least `--hub-loading-bar-speed`. |
-| `color` | `string \| null` | `null` | Default accent. |
-| `glow` | `boolean` | `true` | Default glow. |
-| `ariaLabel` | `string` | `'Loading'` | Default accessible name. |
+| Key             | Type                           | Default                | Description                                                                                                                                                                 |
+| --------------- | ------------------------------ | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `min`           | `number`                       | `8`                    | Value the bar jumps to when it appears. Never zero — an empty bar reads as a bar that is not working.                                                                       |
+| `max`           | `number`                       | `99`                   | Ceiling the trickle may not cross, so it cannot promise an ending it does not know about.                                                                                   |
+| `trickleSpeed`  | `number`                       | `250`                  | Milliseconds between trickle ticks.                                                                                                                                         |
+| `trickle`       | `boolean`                      | `true`                 | Whether the bar advances on its own while it waits.                                                                                                                         |
+| `trickleFn`     | `(progress: number) => number` | `hubLoadingBarTrickle` | Step function. The exported default returns 10 / 4 / 2 / 0.5 as the bar fills.                                                                                              |
+| `delay`         | `number`                       | `100`                  | Grace period before anything is painted. Work finishing inside it shows no bar. `0` reveals the bar synchronously, so work that settles within its own task is still shown. |
+| `completeDelay` | `number`                       | `300`                  | How long the completed bar stays at 100% before fading. Wants to be at least `--hub-loading-bar-speed`.                                                                     |
+| `color`         | `string \| null`               | `null`                 | Default accent.                                                                                                                                                             |
+| `glow`          | `boolean`                      | `true`                 | Default glow.                                                                                                                                                               |
+| `ariaLabel`     | `string`                       | `'Loading'`            | Default accessible name.                                                                                                                                                    |
 
 ### `provideHubLoadingBarRouter()`
 
@@ -632,19 +652,19 @@ it exactly as before, and a custom property set there inherits down to every ele
 The overlay `HubLoadingService` mounts on `document.body` is a real component instance created
 through `createComponent()`, so it carries this stylesheet with it.
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `--hub-loading-accent` | `var(--hub-sys-color-primary, #0d6efd)` | Indicator colour. What the `color` input writes into. |
-| `--hub-loading-size` | `2.5rem` | Indicator box size. What the `size` input maps onto. |
-| `--hub-loading-thickness` | `calc(var(--hub-ref-border-width, 1px) * 3)` | Stroke width of the `spinner` and `ring` indicators. |
-| `--hub-loading-speed` | `0.9s` | Duration of one animation cycle, for the indicators and the image animations. |
-| `--hub-loading-gap` | `var(--hub-sys-gap-2, var(--hub-ref-space-2, 0.5rem))` | Space between indicator, message and projected content. |
-| `--hub-loading-text-color` | `var(--hub-sys-text-primary, var(--hub-ref-color-gray-900, #212529))` | Message colour. |
-| `--hub-loading-font-size` | `var(--hub-ref-font-size-sm, 0.875rem)` | Message font size. |
-| `--hub-loading-backdrop-bg` | `color-mix(in srgb, var(--hub-sys-surface-page, #fff) 72%, transparent)` | Backdrop background in `overlay` / `fullscreen`. Follows the theme's own page surface, so the scrim is a white veil on light themes and a dark one on dark themes. |
-| `--hub-loading-backdrop-blur` | `2px` | Backdrop blur radius. |
-| `--hub-loading-z-index` | `var(--hub-sys-zindex-modal, 1055)` | Stack order of the `fullscreen` layer. |
-| `--hub-loading-image-size` | `var(--hub-loading-size)` | Rendered size of the `image` asset — it follows the indicator size until you say otherwise. |
+| Variable                      | Default                                                                  | Description                                                                                                                                                        |
+| ----------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--hub-loading-accent`        | `var(--hub-sys-color-primary, #0d6efd)`                                  | Indicator colour. What the `color` input writes into.                                                                                                              |
+| `--hub-loading-size`          | `2.5rem`                                                                 | Indicator box size. What the `size` input maps onto.                                                                                                               |
+| `--hub-loading-thickness`     | `calc(var(--hub-ref-border-width, 1px) * 3)`                             | Stroke width of the `spinner` and `ring` indicators.                                                                                                               |
+| `--hub-loading-speed`         | `0.9s`                                                                   | Duration of one animation cycle, for the indicators and the image animations.                                                                                      |
+| `--hub-loading-gap`           | `var(--hub-sys-gap-2, var(--hub-ref-space-2, 0.5rem))`                   | Space between indicator, message and projected content.                                                                                                            |
+| `--hub-loading-text-color`    | `var(--hub-sys-text-primary, var(--hub-ref-color-gray-900, #212529))`    | Message colour.                                                                                                                                                    |
+| `--hub-loading-font-size`     | `var(--hub-ref-font-size-sm, 0.875rem)`                                  | Message font size.                                                                                                                                                 |
+| `--hub-loading-backdrop-bg`   | `color-mix(in srgb, var(--hub-sys-surface-page, #fff) 72%, transparent)` | Backdrop background in `overlay` / `fullscreen`. Follows the theme's own page surface, so the scrim is a white veil on light themes and a dark one on dark themes. |
+| `--hub-loading-backdrop-blur` | `2px`                                                                    | Backdrop blur radius.                                                                                                                                              |
+| `--hub-loading-z-index`       | `var(--hub-sys-zindex-modal, 1055)`                                      | Stack order of the `fullscreen` layer.                                                                                                                             |
+| `--hub-loading-image-size`    | `var(--hub-loading-size)`                                                | Rendered size of the `image` asset — it follows the indicator size until you say otherwise.                                                                        |
 
 ```css
 hub-loading {
@@ -686,21 +706,21 @@ are literals rather than `--hub-sys-transition-*`: the fill has to arrive roughl
 next trickle tick lands, so it is coupled to `trickleSpeed`, and borrowing the application's
 transition scale would let a slow theme leave the bar a tick behind the number it is drawing.
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `--hub-loading-bar-accent` | `var(--hub-sys-color-primary, #0d6efd)` | Fill colour. What the `color` input writes into. |
-| `--hub-loading-bar-height` | `3px` | Thickness of the strip. |
-| `--hub-loading-bar-track-bg` | `transparent` | Unfilled track. Transparent so an idle bar draws no permanent line under the navbar. |
-| `--hub-loading-bar-radius` | `0` | Corner radius of the strip and its fill. |
-| `--hub-loading-bar-speed` | `200ms` | How long the fill takes to catch up with a new value. |
-| `--hub-loading-bar-fade` | `300ms` | Fade in and out of the whole strip. |
-| `--hub-loading-bar-easing` | `linear` | Easing of the fill. Linear reads as steady progress rather than as a flourish. |
-| `--hub-loading-bar-glow-color` | `var(--hub-loading-bar-accent)` | Colour of the glow at the leading edge. |
-| `--hub-loading-bar-glow-blur` | `10px` | Blur radius of that glow. |
-| `--hub-loading-bar-glow-spread` | `1px` | Spread radius of that glow. |
-| `--hub-loading-bar-indeterminate-speed` | `1.6s` | Period of one `indeterminate` sweep. Calmed under `prefers-reduced-motion`. |
-| `--hub-loading-bar-offset` | `0px` | Distance from the edge the `overlay` and `fixed` modes attach to — how far under a navbar the bar hangs. |
-| `--hub-loading-bar-z-index` | `var(--hub-sys-zindex-sticky, 1020)` | Stack order of the positioned modes. Chrome level, deliberately below dialogs and toasts. |
+| Variable                                | Default                                 | Description                                                                                              |
+| --------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `--hub-loading-bar-accent`              | `var(--hub-sys-color-primary, #0d6efd)` | Fill colour. What the `color` input writes into.                                                         |
+| `--hub-loading-bar-height`              | `3px`                                   | Thickness of the strip.                                                                                  |
+| `--hub-loading-bar-track-bg`            | `transparent`                           | Unfilled track. Transparent so an idle bar draws no permanent line under the navbar.                     |
+| `--hub-loading-bar-radius`              | `0`                                     | Corner radius of the strip and its fill.                                                                 |
+| `--hub-loading-bar-speed`               | `200ms`                                 | How long the fill takes to catch up with a new value.                                                    |
+| `--hub-loading-bar-fade`                | `300ms`                                 | Fade in and out of the whole strip.                                                                      |
+| `--hub-loading-bar-easing`              | `linear`                                | Easing of the fill. Linear reads as steady progress rather than as a flourish.                           |
+| `--hub-loading-bar-glow-color`          | `var(--hub-loading-bar-accent)`         | Colour of the glow at the leading edge.                                                                  |
+| `--hub-loading-bar-glow-blur`           | `10px`                                  | Blur radius of that glow.                                                                                |
+| `--hub-loading-bar-glow-spread`         | `1px`                                   | Spread radius of that glow.                                                                              |
+| `--hub-loading-bar-indeterminate-speed` | `1.6s`                                  | Period of one `indeterminate` sweep. Calmed under `prefers-reduced-motion`.                              |
+| `--hub-loading-bar-offset`              | `0px`                                   | Distance from the edge the `overlay` and `fixed` modes attach to — how far under a navbar the bar hangs. |
+| `--hub-loading-bar-z-index`             | `var(--hub-sys-zindex-sticky, 1020)`    | Stack order of the positioned modes. Chrome level, deliberately below dialogs and toasts.                |
 
 ```css
 hub-loading-bar {
@@ -717,29 +737,29 @@ contract as `hub-loading-theme()`.
 
 The internal structure is stable and addressable, for the cases a token cannot reach:
 
-| Class | Element |
-| --- | --- |
-| `.hub-loading` | Host block. |
-| `.hub-loading--inline` · `--overlay` · `--fullscreen` | Mode modifiers. |
-| `.hub-loading--sm` · `--md` · `--lg` | Size modifiers; each retunes the size, thickness and font-size tokens. |
-| `.hub-loading--backdrop` | Present only when the scrim is painted (never in `inline` mode). |
-| `.hub-loading__indicator` | The pure-CSS indicator, plus a `--spinner` / `--dots` / `--bars` / `--pulse` / `--ring` modifier. |
-| `.hub-loading__dot` · `.hub-loading__bar` | The individual parts of the `dots` and `bars` indicators. |
-| `.hub-loading__image` | The `image` asset, plus `--spin` / `--pulse` when animated. |
-| `.hub-loading__message` | The message text. |
+| Class                                                 | Element                                                                                           |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `.hub-loading`                                        | Host block.                                                                                       |
+| `.hub-loading--inline` · `--overlay` · `--fullscreen` | Mode modifiers.                                                                                   |
+| `.hub-loading--sm` · `--md` · `--lg`                  | Size modifiers; each retunes the size, thickness and font-size tokens.                            |
+| `.hub-loading--backdrop`                              | Present only when the scrim is painted (never in `inline` mode).                                  |
+| `.hub-loading__indicator`                             | The pure-CSS indicator, plus a `--spinner` / `--dots` / `--bars` / `--pulse` / `--ring` modifier. |
+| `.hub-loading__dot` · `.hub-loading__bar`             | The individual parts of the `dots` and `bars` indicators.                                         |
+| `.hub-loading__image`                                 | The `image` asset, plus `--spin` / `--pulse` when animated.                                       |
+| `.hub-loading__message`                               | The message text.                                                                                 |
 
 The bar has its own set, and it is worth knowing because most of it is state you can style
 against rather than structure you have to reach into:
 
-| Class | Element |
-| --- | --- |
-| `.hub-loading-bar` | Host block. |
-| `.hub-loading-bar--inline` · `--overlay` · `--fixed` | Mode modifiers. |
-| `.hub-loading-bar--top` · `--bottom` | Placement modifiers; emitted only by the two positioned modes, so they can never reach an inline bar. |
-| `.hub-loading-bar--visible` | Present only while the bar is painted. The fill transition is scoped to it, so a rewind between cycles never animates backwards. |
-| `.hub-loading-bar--indeterminate` | The sweep is running instead of a fill. |
-| `.hub-loading-bar--glow` | The leading-edge glow is on — the shipped default, unless `[glow]="false"` or a re-based `provideHubLoadingBar()` turns it off. |
-| `.hub-loading-bar__indicator` | The fill itself; its `::after` paints the glow. |
+| Class                                                | Element                                                                                                                          |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `.hub-loading-bar`                                   | Host block.                                                                                                                      |
+| `.hub-loading-bar--inline` · `--overlay` · `--fixed` | Mode modifiers.                                                                                                                  |
+| `.hub-loading-bar--top` · `--bottom`                 | Placement modifiers; emitted only by the two positioned modes, so they can never reach an inline bar.                            |
+| `.hub-loading-bar--visible`                          | Present only while the bar is painted. The fill transition is scoped to it, so a rewind between cycles never animates backwards. |
+| `.hub-loading-bar--indeterminate`                    | The sweep is running instead of a fill.                                                                                          |
+| `.hub-loading-bar--glow`                             | The leading-edge glow is on — the shipped default, unless `[glow]="false"` or a re-based `provideHubLoadingBar()` turns it off.  |
+| `.hub-loading-bar__indicator`                        | The fill itself; its `::after` paints the glow.                                                                                  |
 
 ### Right-to-left
 

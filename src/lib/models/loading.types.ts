@@ -2,8 +2,9 @@
  * Where the indicator is placed relative to the document.
  *
  * `overlay` positions absolutely, so the **parent must establish a containing
- * block** (`position: relative`); `fullscreen` is fixed to the viewport and is
- * what {@link HubLoadingService} mounts on `document.body`.
+ * block** (`position: relative`); `fullscreen` is fixed to the viewport, and to stay
+ * measured against it the indicator leaves its subtree for `appendTo` (`<body>` by
+ * default) — the same place {@link HubLoadingService} mounts its own overlay.
  */
 export type HubLoadingMode = 'inline' | 'overlay' | 'fullscreen';
 
