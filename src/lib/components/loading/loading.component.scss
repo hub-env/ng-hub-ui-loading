@@ -13,7 +13,7 @@
 	--hub-loading-thickness: calc(var(--hub-ref-border-width, 1px) * 3);
 	--hub-loading-speed: 0.9s;
 	--hub-loading-gap: var(--hub-sys-gap-2, var(--hub-ref-space-2, 0.5rem));
-	--hub-loading-text-color: var(--hub-sys-text-primary, var(--hub-ref-color-gray-900, #212529));
+	--hub-loading-text-color: var(--hub-sys-text-body, var(--hub-ref-color-gray-900, #212529));
 	--hub-loading-font-size: var(--hub-ref-font-size-sm, 0.875rem);
 	// Follows the theme's own page surface, so the scrim is a white veil on light
 	// themes and a dark one on dark themes without a second token to keep in sync.
